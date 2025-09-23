@@ -37,9 +37,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/imoveis', [ImovelController::class, 'index']);
     Route::get('/imoveis/{id}', [ImovelController::class, 'show']);
     Route::post('/imoveis', [ImovelController::class, 'store']);
-    Route::put('/imoveis/{id}', [ImovelController::class, 'update']);
+    Route::post('/imoveis/{id}', [ImovelController::class, 'update']);
     Route::delete('/imoveis/{id}', [ImovelController::class, 'destroy']);
 });
 
 // Lista pública de imóveis
 Route::get('/imoveis', [ImovelController::class, 'publicIndex']);
+
+use App\Http\Controllers\CepController;
+
+Route::get('/cep/{cep}', [CepController::class, 'show']);

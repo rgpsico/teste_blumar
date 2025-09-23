@@ -155,7 +155,21 @@ class ImovelController extends Controller
 
         $imovel->update($request->only(['titulo', 'descricao', 'preco']));
 
-        $imovel->endereco()->update($request->only(['pais', 'cep', 'rua', 'numero', 'bairro', 'cidade', 'complemento']));
+        $imovel->endereco()->updateOrCreate(
+            ['imovel_id' => $imovel->id],
+            [
+                'pais' => $request->input('pais'),
+                'cep' => $request->input('cep'),
+                'rua' => $request->input('rua'),
+                'numero' => $request->input('numero'),
+                'bairro' => $request->input('bairro'),
+                'cidade' => $request->input('cidade'),
+                'complemento' => $request->input('complemento'),
+            ]
+        );
+
+        // Recarrega o modelo do imóvel e seus relacionamentos para obter os dados atualizados do banco de dados
+        $imovel->refresh();
 
         $fotos = $imovel->fotos->map(function ($foto) {
             return [
