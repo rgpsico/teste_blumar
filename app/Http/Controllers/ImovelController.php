@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Requests\StoreImovelRequest;
 use App\Http\Requests\UpdateImovelRequest;
+use Inertia\Inertia;
 
 class ImovelController extends Controller
 {
@@ -140,37 +141,55 @@ class ImovelController extends Controller
     }
 
     // Atualizar imóvel
-    public function update(UpdateImovelRequest  $request, $id)
+    public function update(UpdateImovelRequest $request, $id)
     {
         $imovel = Imovel::find($id);
-
-        if ($imovel->user_id !== Auth::id()) {
-            return response()->json(['message' => 'Não autorizado'], 403);
-        }
 
         if (!$imovel) {
             return response()->json(['message' => 'Imóvel não encontrado'], 404);
         }
 
-
+        if ($imovel->user_id !== Auth::id()) {
+            return response()->json(['message' => 'Não autorizado'], 403);
+        }
 
         $imovel->update($request->only(['titulo', 'descricao', 'preco']));
 
-        // Atualizar endereço
         $imovel->endereco()->update($request->only(['pais', 'cep', 'rua', 'numero', 'bairro', 'cidade', 'complemento']));
 
-        // Salvar novas fotos
+        $fotos = $imovel->fotos->map(function ($foto) {
+            return [
+                'id' => $foto->id,
+                'path' => asset('storage/' . $foto->path),
+            ];
+        })->toArray();
+
         if ($request->hasFile('fotos')) {
             foreach ($request->file('fotos') as $foto) {
                 $path = $foto->store('imoveis', 'public');
-                ImovelFoto::create([
+                $fotoModel = ImovelFoto::create([
                     'imovel_id' => $imovel->id,
                     'path' => $path,
                 ]);
+                $fotos[] = [
+                    'id' => $fotoModel->id,
+                    'path' => asset('storage/' . $path),
+                ];
             }
         }
 
-        return response()->json(['message' => 'Imóvel atualizado com sucesso', 'imovel' => $imovel]);
+        return response()->json([
+            'message' => 'Imóvel atualizado com sucesso',
+            'imovel' => [
+                'id' => $imovel->id,
+                'user_id' => $imovel->user_id,
+                'titulo' => $imovel->titulo,
+                'descricao' => $imovel->descricao,
+                'preco' => $imovel->preco,
+                'endereco' => $imovel->endereco,
+                'fotos' => $fotos,
+            ],
+        ]);
     }
 
     // Deletar imóvel
@@ -194,5 +213,13 @@ class ImovelController extends Controller
         $imovel->delete();
 
         return response()->json(['message' => 'Imóvel deletado com sucesso']);
+    }
+
+    public function home()
+    {
+        return Inertia::render('imoveis.index', [
+            'user' => auth()->user(),
+            'properties' => Imovel::all(), // ou Imovel::all()
+        ]);
     }
 }

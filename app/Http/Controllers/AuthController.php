@@ -83,4 +83,10 @@ class AuthController extends Controller
 
         return response()->json(['message' => 'Logout realizado com sucesso']);
     }
+
+    public function me(Request $request)
+    {
+        $user = $request->user()->load('address'); // Carrega o relacionamento de endereço
+        return response()->json($user);
+    }
 }

@@ -9,3 +9,6 @@ Route::get('/beach-houses', [App\Http\Controllers\BeachHouseController::class, '
 Route::get('/beach-houses/{id}', [App\Http\Controllers\BeachHouseController::class, 'show']);
 Route::post('/beach-houses', [App\Http\Controllers\BeachHouseController::class, 'store']);
 Route::delete('/beach-houses/{id}', [App\Http\Controllers\BeachHouseController::class, 'destroy']);
+
+
+Route::get('/', [App\Http\Controllers\ImovelController::class, 'home']);
