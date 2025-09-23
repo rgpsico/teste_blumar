@@ -14,7 +14,7 @@ API REST desenvolvida em Laravel para gerenciamento de Beach Houses da Blumar.
 ### 1. Clone o repositório
 
 ```bash
-git clone <url-do-repositorio>
+git clone https://github.com/rgpsico/teste_blumar
 cd beach_api
 ```
 
