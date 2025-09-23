@@ -5,7 +5,7 @@
             <div class="nav-container">
                 <div class="logo">
                     <i class="fas fa-home"></i>
-                    ImobiliáriaApp
+                    BEACH
                 </div>
 
                 <div class="nav-buttons">
@@ -33,6 +33,13 @@
                         >
                             <i class="fas fa-plus"></i>
                             Novo Imóvel
+                        </button>
+                        <button
+                            class="btn btn-info"
+                            @click="showProfileModal = true"
+                        >
+                            <i class="fas fa-user"></i>
+                            Perfil
                         </button>
                         <Link
                             :href="showMyProperties ? '/' : '/meus-imoveis'"

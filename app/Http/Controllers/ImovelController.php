@@ -134,10 +134,8 @@ class ImovelController extends Controller
             }
         }
 
-        return response()->json([
-            'message' => 'Imóvel criado com sucesso',
-            'imovel' => $imovel
-        ], 201);
+
+        return redirect()->back()->with('success', 'Imóvel criado com sucesso!');
     }
 
     // Atualizar imóvel
@@ -192,18 +190,7 @@ class ImovelController extends Controller
             }
         }
 
-        return response()->json([
-            'message' => 'Imóvel atualizado com sucesso',
-            'imovel' => [
-                'id' => $imovel->id,
-                'user_id' => $imovel->user_id,
-                'titulo' => $imovel->titulo,
-                'descricao' => $imovel->descricao,
-                'preco' => $imovel->preco,
-                'endereco' => $imovel->endereco,
-                'fotos' => $fotos,
-            ],
-        ]);
+        return redirect()->back()->with('success', 'Imóvel atualizado com sucesso!');
     }
 
     // Deletar imóvel
@@ -229,11 +216,76 @@ class ImovelController extends Controller
         return response()->json(['message' => 'Imóvel deletado com sucesso']);
     }
 
-    public function home()
+    public function home(Request $request)
     {
+        $query = Imovel::with(['endereco', 'fotos']);
+
+        // Aplicar filtros se existirem
+        if ($request->filled('pais')) {
+            $query->whereHas('endereco', function ($q) use ($request) {
+                $q->where('pais', 'like', '%' . $request->pais . '%');
+            });
+        }
+
+        if ($request->filled('bairro')) {
+            $query->whereHas('endereco', function ($q) use ($request) {
+                $q->where('bairro', 'like', '%' . $request->bairro . '%');
+            });
+        }
+
+        if ($request->filled('cep')) {
+            $query->whereHas('endereco', function ($q) use ($request) {
+                $q->where('cep', 'like', '%' . $request->cep . '%');
+            });
+        }
+
+        if ($request->filled('titulo')) {
+            $query->where('titulo', 'like', '%' . $request->titulo . '%');
+        }
+
+        $properties = $query->orderBy('created_at', 'desc')->get();
+
         return Inertia::render('Imoveis/Index', [
             'user' => auth()->user(),
-            'properties' => Imovel::all(),
+            'properties' => $properties,
+            'filters' => $request->only(['pais', 'bairro', 'cep', 'titulo']),
+        ]);
+    }
+
+    public function myProperties(Request $request)
+    {
+        $query = auth()->user()->imoveis()->with(['endereco', 'fotos']);
+
+        // Aplicar filtros se existirem
+        if ($request->filled('pais')) {
+            $query->whereHas('endereco', function ($q) use ($request) {
+                $q->where('pais', 'like', '%' . $request->pais . '%');
+            });
+        }
+
+        if ($request->filled('bairro')) {
+            $query->whereHas('endereco', function ($q) use ($request) {
+                $q->where('bairro', 'like', '%' . $request->bairro . '%');
+            });
+        }
+
+        if ($request->filled('cep')) {
+            $query->whereHas('endereco', function ($q) use ($request) {
+                $q->where('cep', 'like', '%' . $request->cep . '%');
+            });
+        }
+
+        if ($request->filled('titulo')) {
+            $query->where('titulo', 'like', '%' . $request->titulo . '%');
+        }
+
+        $properties = $query->orderBy('created_at', 'desc')->get();
+
+        return Inertia::render('Imoveis/Index', [
+            'user' => auth()->user(),
+            'properties' => $properties,
+            'filters' => $request->only(['pais', 'bairro', 'cep', 'titulo']),
+            'showMyProperties' => true,
         ]);
     }
 }
