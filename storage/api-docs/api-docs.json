@@ -1,0 +1,475 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "API de Casas de Praia",
+        "description": "API para gerenciar casas de praia.",
+        "version": "1.0.0"
+    },
+    "paths": {
+        "/api/beach-houses": {
+            "get": {
+                "tags": [
+                    "Beach Houses"
+                ],
+                "summary": "Listar todas as casas de praia",
+                "operationId": "0abaec0f9a00c6be9e8128d44d1dcb99",
+                "responses": {
+                    "200": {
+                        "description": "Lista de casas de praia",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer",
+                                                "example": 1
+                                            },
+                                            "cor": {
+                                                "type": "string",
+                                                "example": "Azul"
+                                            },
+                                            "cidade": {
+                                                "type": "string",
+                                                "example": "Rio de Janeiro"
+                                            },
+                                            "nome": {
+                                                "type": "string",
+                                                "example": "Casa da Praia Azul"
+                                            },
+                                            "descritivo": {
+                                                "type": "string",
+                                                "example": "Casa pé na areia, com piscina e churrasqueira."
+                                            },
+                                            "foto1": {
+                                                "type": "string",
+                                                "example": "https://servidor.com/casa1.jpg"
+                                            },
+                                            "foto2": {
+                                                "type": "string",
+                                                "example": null
+                                            },
+                                            "foto3": {
+                                                "type": "string",
+                                                "example": null
+                                            },
+                                            "ativo": {
+                                                "type": "boolean",
+                                                "example": true
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Beach Houses"
+                ],
+                "summary": "Criar uma nova casa de praia",
+                "operationId": "468e1761733b3e1d27d36e109d7062dc",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "cor",
+                                    "cidade",
+                                    "nome",
+                                    "descritivo"
+                                ],
+                                "properties": {
+                                    "cor": {
+                                        "type": "string",
+                                        "example": "Azul"
+                                    },
+                                    "cidade": {
+                                        "type": "string",
+                                        "example": "Rio de Janeiro"
+                                    },
+                                    "nome": {
+                                        "type": "string",
+                                        "example": "Casa da Praia Azul"
+                                    },
+                                    "descritivo": {
+                                        "type": "string",
+                                        "example": "Casa pé na areia, com piscina e churrasqueira."
+                                    },
+                                    "foto1": {
+                                        "type": "string",
+                                        "example": "https://servidor.com/casa1.jpg"
+                                    },
+                                    "foto2": {
+                                        "type": "string",
+                                        "example": null
+                                    },
+                                    "foto3": {
+                                        "type": "string",
+                                        "example": null
+                                    },
+                                    "ativo": {
+                                        "type": "boolean",
+                                        "example": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Casa de praia criada com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Casa de praia criada com sucesso!"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "cor": {
+                                                    "type": "string",
+                                                    "example": "Azul"
+                                                },
+                                                "cidade": {
+                                                    "type": "string",
+                                                    "example": "Rio de Janeiro"
+                                                },
+                                                "nome": {
+                                                    "type": "string",
+                                                    "example": "Casa da Praia Azul"
+                                                },
+                                                "descritivo": {
+                                                    "type": "string",
+                                                    "example": "Casa pé na areia, com piscina e churrasqueira."
+                                                },
+                                                "foto1": {
+                                                    "type": "string",
+                                                    "example": "https://servidor.com/casa1.jpg"
+                                                },
+                                                "foto2": {
+                                                    "type": "string",
+                                                    "example": null
+                                                },
+                                                "foto3": {
+                                                    "type": "string",
+                                                    "example": null
+                                                },
+                                                "ativo": {
+                                                    "type": "boolean",
+                                                    "example": true
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/beach-houses/{id}": {
+            "get": {
+                "tags": [
+                    "Beach Houses"
+                ],
+                "summary": "Obter detalhes de uma casa de praia",
+                "operationId": "a750bc60e0d7a86982acf0e8d5912f08",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID da casa de praia",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Detalhes da casa de praia",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "id": {
+                                            "type": "integer",
+                                            "example": 1
+                                        },
+                                        "cor": {
+                                            "type": "string",
+                                            "example": "Azul"
+                                        },
+                                        "cidade": {
+                                            "type": "string",
+                                            "example": "Rio de Janeiro"
+                                        },
+                                        "nome": {
+                                            "type": "string",
+                                            "example": "Casa da Praia Azul"
+                                        },
+                                        "descritivo": {
+                                            "type": "string",
+                                            "example": "Casa pé na areia, com piscina e churrasqueira."
+                                        },
+                                        "foto1": {
+                                            "type": "string",
+                                            "example": "https://servidor.com/casa1.jpg"
+                                        },
+                                        "foto2": {
+                                            "type": "string",
+                                            "example": null
+                                        },
+                                        "foto3": {
+                                            "type": "string",
+                                            "example": null
+                                        },
+                                        "ativo": {
+                                            "type": "boolean",
+                                            "example": true
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Casa de praia não encontrada",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Casa de praia não encontrada."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Beach Houses"
+                ],
+                "summary": "Atualizar uma casa de praia",
+                "operationId": "3a844783e0e4f8a89b97ec3430adb157",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID da casa de praia",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "cor",
+                                    "cidade",
+                                    "nome",
+                                    "descritivo"
+                                ],
+                                "properties": {
+                                    "cor": {
+                                        "type": "string",
+                                        "example": "Azul"
+                                    },
+                                    "cidade": {
+                                        "type": "string",
+                                        "example": "Rio de Janeiro"
+                                    },
+                                    "nome": {
+                                        "type": "string",
+                                        "example": "Casa da Praia Azul"
+                                    },
+                                    "descritivo": {
+                                        "type": "string",
+                                        "example": "Casa pé na areia, com piscina e churrasqueira."
+                                    },
+                                    "foto1": {
+                                        "type": "string",
+                                        "example": "https://servidor.com/casa1.jpg"
+                                    },
+                                    "foto2": {
+                                        "type": "string",
+                                        "example": null
+                                    },
+                                    "foto3": {
+                                        "type": "string",
+                                        "example": null
+                                    },
+                                    "ativo": {
+                                        "type": "boolean",
+                                        "example": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Casa de praia atualizada com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Casa de praia atualizada com sucesso!"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "cor": {
+                                                    "type": "string",
+                                                    "example": "Azul"
+                                                },
+                                                "cidade": {
+                                                    "type": "string",
+                                                    "example": "Rio de Janeiro"
+                                                },
+                                                "nome": {
+                                                    "type": "string",
+                                                    "example": "Casa da Praia Azul"
+                                                },
+                                                "descritivo": {
+                                                    "type": "string",
+                                                    "example": "Casa pé na areia, com piscina e churrasqueira."
+                                                },
+                                                "foto1": {
+                                                    "type": "string",
+                                                    "example": "https://servidor.com/casa1.jpg"
+                                                },
+                                                "foto2": {
+                                                    "type": "string",
+                                                    "example": null
+                                                },
+                                                "foto3": {
+                                                    "type": "string",
+                                                    "example": null
+                                                },
+                                                "ativo": {
+                                                    "type": "boolean",
+                                                    "example": true
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Casa de praia não encontrada",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Casa de praia não encontrada."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Beach Houses"
+                ],
+                "summary": "Remover uma casa de praia",
+                "operationId": "f378166a995dbbe9f72e8106bbbdc080",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID da casa de praia",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Casa de praia removida com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Casa de praia removida com sucesso!"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Casa de praia não encontrada",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Casa de praia não encontrada."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Beach Houses",
+            "description": "Beach Houses"
+        }
+    ]
+}

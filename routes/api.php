@@ -1,7 +1,16 @@
 <?php
 
+/**
+ * @OA\Info(
+ * title="My Awesome API",
+ * version="1.0.0",
+ * description="A simple API to demonstrate Swagger-PHP."
+ * )
+ */
+
 use App\Http\Controllers\BeachHouseController;
 use Illuminate\Support\Facades\Route;
+
 
 Route::put('/beach-house/{id}', [App\Http\Controllers\BeachHouseController::class, 'update']);
 Route::get('/beach-houses', [App\Http\Controllers\BeachHouseController::class, 'index']);
