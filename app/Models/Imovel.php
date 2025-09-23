@@ -17,6 +17,7 @@ class Imovel extends Model
         'titulo',
         'descricao',
         'preco',
+        'ativo',
     ];
 
     public function user()

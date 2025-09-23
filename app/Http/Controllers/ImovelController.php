@@ -59,6 +59,39 @@ class ImovelController extends Controller
         return response()->json($imoveis);
     }
 
+    public function publicIndex(Request $request)
+    {
+        $query = Imovel::query()->with('endereco', 'fotos')->where('ativo', true);
+
+        // Filtros opcionais
+        if ($request->has('pais')) {
+            $query->whereHas('endereco', function ($q) use ($request) {
+                $q->where('pais', $request->pais);
+            });
+        }
+
+        if ($request->has('bairro')) {
+            $query->whereHas('endereco', function ($q) use ($request) {
+                $q->where('bairro', $request->bairro);
+            });
+        }
+
+        if ($request->has('cep')) {
+            $query->whereHas('endereco', function ($q) use ($request) {
+                $q->where('cep', $request->cep);
+            });
+        }
+
+        if ($request->has('titulo')) {
+            $query->where('titulo', 'like', '%' . $request->titulo . '%');
+        }
+
+        // Retorna todos os imóveis filtrados
+        $imoveis = $query->get();
+
+        return response()->json($imoveis);
+    }
+
     // Visualizar imóvel específico
     public function show($id)
     {

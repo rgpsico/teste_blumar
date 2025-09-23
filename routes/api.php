@@ -39,3 +39,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/imoveis/{id}', [ImovelController::class, 'update']);
     Route::delete('/imoveis/{id}', [ImovelController::class, 'destroy']);
 });
+
+// Lista pública de imóveis
+Route::get('/imoveis', [ImovelController::class, 'publicIndex']);
