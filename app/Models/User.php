@@ -45,4 +45,16 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    // Relação 1 para 1 com endereço
+    public function address()
+    {
+        return $this->hasOne(UserAddress::class);
+    }
+
+    // Relação 1 para muitos com imóveis
+    public function imoveis()
+    {
+        return $this->hasMany(Imovel::class);
+    }
 }

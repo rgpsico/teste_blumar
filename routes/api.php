@@ -17,3 +17,10 @@ Route::get('/beach-houses', [App\Http\Controllers\BeachHouseController::class, '
 Route::get('/beach-houses/{id}', [App\Http\Controllers\BeachHouseController::class, 'show']);
 Route::post('/beach-houses', [App\Http\Controllers\BeachHouseController::class, 'store']);
 Route::delete('/beach-houses/{id}', [App\Http\Controllers\BeachHouseController::class, 'destroy']);
+
+
+use App\Http\Controllers\AuthController;
+
+Route::post('/register', [AuthController::class, 'register']);
+Route::post('/login', [AuthController::class, 'login']);
+Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth');
