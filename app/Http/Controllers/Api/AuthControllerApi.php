@@ -1,15 +1,16 @@
 <?php
 
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
 use App\Models\User;
 use App\Models\UserAddress;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
+use App\Http\Controllers\Controller;
 
-class AuthController extends Controller
+class AuthControllerApi extends Controller
 {
     // Cadastro com token
     public function register(Request $request)

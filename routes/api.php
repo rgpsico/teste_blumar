@@ -20,6 +20,7 @@ Route::delete('/beach-houses/{id}', [App\Http\Controllers\BeachHouseController::
 
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\Api\AuthControllerApi;
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
@@ -32,7 +33,7 @@ use App\Http\Controllers\ImovelController;
 
 
 Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/me', [AuthController::class, 'me']);
+    Route::get('/me', [AuthControllerApi::class, 'me']);
     Route::get('/imoveis/filter', [ImovelController::class, 'filter']);
     Route::get('/imoveis', [ImovelController::class, 'index']);
     Route::get('/imoveis/{id}', [ImovelController::class, 'show']);
@@ -40,6 +41,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/imoveis/{id}', [ImovelController::class, 'update']);
     Route::delete('/imoveis/{id}', [ImovelController::class, 'destroy']);
 });
+
+Route::get('/login', [AuthControllerApi::class, 'showLogin']);
+Route::post('/login', [AuthControllerApi::class, 'login']);
+Route::post('/register', [AuthControllerApi::class, 'register']);
 
 // Lista pública de imóveis
 Route::get('/imoveis', [ImovelController::class, 'publicIndex']);
