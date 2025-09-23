@@ -1,14 +1,30 @@
 <?php
 
-
-use App\Http\Controllers\BeachHouseController;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ImovelController;
+use App\Http\Controllers\CepController;
 use Illuminate\Support\Facades\Route;
 
-Route::put('/beach-house/{id}', [App\Http\Controllers\BeachHouseController::class, 'update']);
-Route::get('/beach-houses', [App\Http\Controllers\BeachHouseController::class, 'index']);
-Route::get('/beach-houses/{id}', [App\Http\Controllers\BeachHouseController::class, 'show']);
-Route::post('/beach-houses', [App\Http\Controllers\BeachHouseController::class, 'store']);
-Route::delete('/beach-houses/{id}', [App\Http\Controllers\BeachHouseController::class, 'destroy']);
+// Rota principal
+Route::get('/', [ImovelController::class, 'home'])->name('home');
 
+// Rotas de autenticação
+Route::middleware('guest')->group(function () {
+    Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
+    Route::post('/login', [AuthController::class, 'login']);
+    Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
+    Route::post('/register', [AuthController::class, 'register']);
+});
 
-Route::get('/', [App\Http\Controllers\ImovelController::class, 'home']);
+// Rotas autenticadas
+Route::middleware('auth')->group(function () {
+    Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+    Route::get('/meus-imoveis', [ImovelController::class, 'myProperties'])->name('imoveis.my');
+    Route::resource('imoveis', ImovelController::class)->except(['index']);
+});
+
+// Rota pública para busca de CEP
+Route::get('/cep/{cep}', [CepController::class, 'show']);
+
+// Rotas públicas de imóveis
+Route::get('/imoveis/search', [ImovelController::class, 'search'])->name('imoveis.search');

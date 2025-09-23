@@ -1,92 +1,67 @@
 <?php
 
-
 namespace App\Http\Controllers;
 
 use App\Models\User;
-use App\Models\UserAddress;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\ValidationException;
+use Inertia\Inertia;
 
 class AuthController extends Controller
 {
-    // Cadastro com token
+    public function showLogin()
+    {
+        return Inertia::render('Auth/Login');
+    }
+
+    public function login(Request $request)
+    {
+        $credentials = $request->validate([
+            'email' => 'required|email',
+            'password' => 'required',
+        ]);
+
+        if (Auth::attempt($credentials)) {
+            $request->session()->regenerate();
+            return redirect()->intended('/')->with('success', 'Login realizado com sucesso!');
+        }
+
+        return back()->withErrors([
+            'email' => 'As credenciais fornecidas não correspondem aos nossos registros.',
+        ]);
+    }
+
+    public function showRegister()
+    {
+        return Inertia::render('Auth/Register');
+    }
+
     public function register(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|string|email|unique:users,email',
-            'password' => 'required|string|min:6|confirmed',
-            'cep' => 'required|string',
-            'rua' => 'required|string',
-            'numero' => 'required|string',
+            'email' => 'required|string|email|max:255|unique:users',
+            'password' => 'required|string|min:8|confirmed',
         ]);
 
         $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'password' => Hash::make($validated['password']),
         ]);
 
-        UserAddress::create([
-            'user_id' => $user->id,
-            'cep' => $request->cep,
-            'rua' => $request->rua,
-            'numero' => $request->numero,
-            'bairro' => $request->bairro,
-            'cidade' => $request->cidade,
-            'estado' => $request->estado,
-            'pais' => $request->pais,
-            'complemento' => $request->complemento,
-        ]);
+        Auth::login($user);
 
-        // Criar token
-        $token = $user->createToken('auth_token')->plainTextToken;
-
-        return response()->json([
-            'message' => 'Usuário registrado com sucesso',
-            'access_token' => $token,
-            'token_type' => 'Bearer'
-        ], 201);
+        return redirect('/')->with('success', 'Cadastro realizado com sucesso!');
     }
 
-    // Login com token
-    public function login(Request $request)
-    {
-        $request->validate([
-            'email' => 'required|string|email',
-            'password' => 'required|string',
-        ]);
-
-        $user = User::where('email', $request->email)->first();
-
-        if (!$user || !Hash::check($request->password, $user->password)) {
-            throw ValidationException::withMessages([
-                'email' => ['Credenciais inválidas.'],
-            ]);
-        }
-
-        $token = $user->createToken('auth_token')->plainTextToken;
-
-        return response()->json([
-            'message' => 'Login realizado com sucesso',
-            'access_token' => $token,
-            'token_type' => 'Bearer'
-        ]);
-    }
-
-    // Logout (revogar token)
     public function logout(Request $request)
     {
-        $request->user()->currentAccessToken()->delete();
+        Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
 
-        return response()->json(['message' => 'Logout realizado com sucesso']);
-    }
-
-    public function me(Request $request)
-    {
-        $user = $request->user()->load('address'); // Carrega o relacionamento de endereço
-        return response()->json($user);
+        return redirect('/')->with('success', 'Logout realizado com sucesso!');
     }
 }
