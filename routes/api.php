@@ -32,8 +32,7 @@ use App\Http\Controllers\ImovelController;
 
 
 Route::middleware('auth:sanctum')->group(function () {
-    Route::post('/logout', [AuthController::class, 'logout']);
-
+    Route::get('/imoveis/filter', [ImovelController::class, 'filter']);
     Route::get('/imoveis', [ImovelController::class, 'index']);
     Route::get('/imoveis/{id}', [ImovelController::class, 'show']);
     Route::post('/imoveis', [ImovelController::class, 'store']);

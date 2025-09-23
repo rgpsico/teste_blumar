@@ -9,12 +9,52 @@ use App\Models\ImovelFoto;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use App\Http\Requests\StoreImovelRequest;
+use App\Http\Requests\UpdateImovelRequest;
 
 class ImovelController extends Controller
 {
+
+    public function filter(Request $request)
+    {
+
+
+
+        $query = Imovel::query()->with('endereco', 'fotos');
+
+        // Filtros opcionais
+        if ($request->has('pais')) {
+            $query->whereHas('endereco', function ($q) use ($request) {
+                $q->where('pais', $request->pais);
+            });
+        }
+
+        if ($request->has('bairro')) {
+            $query->whereHas('endereco', function ($q) use ($request) {
+                $q->where('bairro', $request->bairro);
+            });
+        }
+
+        if ($request->has('cep')) {
+            $query->whereHas('endereco', function ($q) use ($request) {
+                $q->where('cep', $request->cep);
+            });
+        }
+
+        if ($request->has('titulo')) {
+            $query->where('titulo', 'like', '%' . $request->titulo . '%');
+        }
+
+        $imoveis = $query->get();
+
+        return response()->json($imoveis);
+    }
+
+
     // Listar imóveis do usuário logado
     public function index()
     {
+
         $imoveis = Auth::user()->imoveis()->with('endereco', 'fotos')->get();
         return response()->json($imoveis);
     }
@@ -27,22 +67,8 @@ class ImovelController extends Controller
     }
 
     // Criar novo imóvel
-    public function store(Request $request)
+    public function store(StoreImovelRequest $request)
     {
-        $request->validate([
-            'titulo' => 'required|string|max:255',
-            'descricao' => 'required|string',
-            'preco' => 'required|numeric',
-            'pais' => 'required|string',
-            'cep' => 'required|string',
-            'rua' => 'required|string',
-            'numero' => 'required|string',
-            'bairro' => 'nullable|string',
-            'cidade' => 'nullable|string',
-            'complemento' => 'nullable|string',
-            'fotos.*' => 'nullable|image|max:2048', // múltiplas fotos
-        ]);
-
         // Criar imóvel
         $imovel = Imovel::create([
             'user_id' => Auth::id(),
@@ -74,30 +100,26 @@ class ImovelController extends Controller
             }
         }
 
-        return response()->json(['message' => 'Imóvel criado com sucesso', 'imovel' => $imovel], 201);
+        return response()->json([
+            'message' => 'Imóvel criado com sucesso',
+            'imovel' => $imovel
+        ], 201);
     }
 
     // Atualizar imóvel
-    public function update(Request $request, $id)
+    public function update(UpdateImovelRequest  $request, $id)
     {
-        $imovel = Imovel::findOrFail($id);
+        $imovel = Imovel::find($id);
+
         if ($imovel->user_id !== Auth::id()) {
             return response()->json(['message' => 'Não autorizado'], 403);
         }
 
-        $request->validate([
-            'titulo' => 'sometimes|required|string|max:255',
-            'descricao' => 'sometimes|required|string',
-            'preco' => 'sometimes|required|numeric',
-            'pais' => 'sometimes|required|string',
-            'cep' => 'sometimes|required|string',
-            'rua' => 'sometimes|required|string',
-            'numero' => 'sometimes|required|string',
-            'bairro' => 'nullable|string',
-            'cidade' => 'nullable|string',
-            'complemento' => 'nullable|string',
-            'fotos.*' => 'nullable|image|max:2048',
-        ]);
+        if (!$imovel) {
+            return response()->json(['message' => 'Imóvel não encontrado'], 404);
+        }
+
+
 
         $imovel->update($request->only(['titulo', 'descricao', 'preco']));
 
@@ -122,6 +144,11 @@ class ImovelController extends Controller
     public function destroy($id)
     {
         $imovel = Imovel::findOrFail($id);
+
+        if (!$imovel) {
+            return response()->json(['message' => 'Imóvel não encontrado'], 404);
+        }
+
         if ($imovel->user_id !== Auth::id()) {
             return response()->json(['message' => 'Não autorizado'], 403);
         }

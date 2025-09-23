@@ -9,6 +9,8 @@ class ImovelFoto extends Model
 {
     use HasFactory;
 
+    protected $table = 'imoveis_fotos';
+
     protected $fillable = [
         'imovel_id',
         'path',
