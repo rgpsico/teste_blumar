@@ -50,4 +50,17 @@ class BeachHouseController extends Controller
             'data' => $house
         ], 200);
     }
+
+    public function destroy($id)
+    {
+        $house = BeachHouse::find($id);
+
+        if (!$house) {
+            return response()->json(['message' => 'Casa de praia não encontrada.'], 404);
+        }
+
+        $house->delete();
+
+        return response()->json(['message' => 'Casa de praia removida com sucesso!'], 200);
+    }
 }
