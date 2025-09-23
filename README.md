@@ -1,40 +1,34 @@
-# Beach API
+Beach API
 
 API REST desenvolvida em Laravel para gerenciamento de Beach Houses da Blumar.
 
-## Requisitos
+Requisitos
 
--   PHP >= 8.1
--   Composer
--   MySQL/PostgreSQL
--   Node.js e NPM (opcional, para assets)
+PHP >= 8.1
 
-## Instalação
+Composer
 
-### 1. Clone o repositório
+MySQL/PostgreSQL
 
-```bash
-git clone https://github.com/rgpsico/teste_blumar
-cd beach_api
-```
+Node.js e NPM (opcional, para assets)
 
-### 2. Instale as dependências do Composer
+Instalação
 
-```bash
-composer install
-```
+1. Clone o repositório
+   git clone https://github.com/rgpsico/teste_blumar
+   cd beach_api
 
-### 3. Configure o arquivo de ambiente
+2. Instale as dependências do Composer
+   composer install
 
-Copie o arquivo `.env.example` para `.env`:
+3. Configure o arquivo de ambiente
 
-```bash
+Copie o arquivo .env.example para .env:
+
 cp .env.example .env
-```
 
-Configure as variáveis de ambiente no arquivo `.env`:
+Configure as variáveis de ambiente no arquivo .env:
 
-```env
 APP_NAME=BeachAPI
 APP_ENV=local
 APP_KEY=
@@ -47,192 +41,162 @@ DB_PORT=3306
 DB_DATABASE=beach_houses
 DB_USERNAME=seu_usuario
 DB_PASSWORD=sua_senha
-```
 
-### 4. Gere a chave da aplicação
+4. Gere a chave da aplicação
+   php artisan key:generate
 
-```bash
-php artisan key:generate
-```
+5. Configure o banco de dados
 
-### 5. Configure o banco de dados
-
-Crie o banco de dados `beach_houses` no seu SGBD.
+Crie o banco de dados beach_houses no seu SGBD.
 
 Execute as migrations para criar as tabelas:
 
-```bash
 php artisan migrate
-```
 
-### 6. Inicie o servidor de desenvolvimento
+6. Inicie o servidor de desenvolvimento
+   php artisan serve
 
-```bash
-php artisan serve
-```
+A API estará disponível em http://localhost:8000.
 
-A API estará disponível em `http://localhost:8000`
+Frontend
 
-## Endpoints da API
+O frontend está disponível no arquivo index.html na raiz do projeto Laravel.
+Para visualizar, abra o arquivo index.html diretamente no navegador ou configure seu servidor web para servir a raiz do projeto.
 
-### Listar todas as Beach Houses
-
-```
+Endpoints da API
+Listar todas as Beach Houses
 GET /api/beach-houses
-```
 
-**Resposta de exemplo:**
+Resposta de exemplo:
 
-```json
 {
-    "data": [
-        {
-            "id": 1,
-            "nome": "Casa da Praia",
-            "cidade": "Florianópolis",
-            "descritivo": "Linda casa de praia com vista para o mar",
-            "created_at": "2024-01-01T12:00:00.000000Z",
-            "updated_at": "2024-01-01T12:00:00.000000Z"
-        }
-    ]
+"data": [
+{
+"id": 1,
+"nome": "Casa da Praia",
+"cidade": "Florianópolis",
+"descritivo": "Linda casa de praia com vista para o mar",
+"created_at": "2024-01-01T12:00:00.000000Z",
+"updated_at": "2024-01-01T12:00:00.000000Z"
 }
-```
+]
+}
 
-### Criar nova Beach House
-
-```
+Criar nova Beach House
 POST /api/beach-houses
-```
 
-**Body (JSON):**
+Body (JSON):
 
-```json
 {
-    "nome": "Casa da Praia",
-    "cidade": "Florianópolis",
-    "descritivo": "Linda casa de praia com vista para o mar"
+"nome": "Casa da Praia",
+"cidade": "Florianópolis",
+"descritivo": "Linda casa de praia com vista para o mar"
 }
-```
 
-**Resposta de sucesso:**
+Resposta de sucesso:
 
-```json
 {
-    "message": "Beach house created successfully",
-    "data": {
-        "id": 1,
-        "nome": "Casa da Praia",
-        "cidade": "Florianópolis",
-        "descritivo": "Linda casa de praia com vista para o mar",
-        "created_at": "2024-01-01T12:00:00.000000Z",
-        "updated_at": "2024-01-01T12:00:00.000000Z"
-    }
+"message": "Beach house created successfully",
+"data": {
+"id": 1,
+"nome": "Casa da Praia",
+"cidade": "Florianópolis",
+"descritivo": "Linda casa de praia com vista para o mar",
+"created_at": "2024-01-01T12:00:00.000000Z",
+"updated_at": "2024-01-01T12:00:00.000000Z"
 }
-```
+}
 
-**Resposta de erro de validação:**
+Resposta de erro de validação:
 
-```json
 {
-    "message": "The given data was invalid.",
-    "errors": {
-        "nome": ["O campo nome é obrigatório."],
-        "cidade": ["O campo cidade é obrigatório."],
-        "descritivo": ["O campo descritivo é obrigatório."]
-    }
+"message": "The given data was invalid.",
+"errors": {
+"nome": ["O campo nome é obrigatório."],
+"cidade": ["O campo cidade é obrigatório."],
+"descritivo": ["O campo descritivo é obrigatório."]
 }
-```
+}
 
-## Estrutura do Projeto
-
-```
+Estrutura do Projeto
 beach_api/
 ├── app/
-│   ├── Http/
-│   │   └── Controllers/
-│   │       └── BeachHouseController.php
-│   └── Models/
-│       └── BeachHouse.php
+│ ├── Http/
+│ │ └── Controllers/
+│ │ ├── AuthController.php
+│ │ ├── AuthControllerApi.php
+│ │ ├── BeachHouseController.php
+│ │ ├── ImovelController.php
+│ │ └── CepController.php
+│ └── Models/
+│ ├── User.php
+│ ├── UserAddress.php
+│ ├── Imovel.php
+│ ├── ImovelEndereco.php
+│ └── ImovelFoto.php
 ├── database/
-│   └── migrations/
-│       └── xxxx_xx_xx_create_beach_houses_table.php
+│ └── migrations/
+│ └── xxxx_xx_xx_create_imoveis_table.php
 ├── routes/
-│   └── api.php
+│ └── api.php
+├── index.html <-- Frontend (single page)
 ├── .env.example
 ├── composer.json
 └── README.md
-```
 
-## Testando a API
+Testando a API
+Usando cURL
 
-### Usando cURL
+Listar beach houses:
 
-**Listar beach houses:**
+curl -X GET http://localhost:8000/api/imoveis \
+ -H "Accept: application/json"
 
-```bash
-curl -X GET http://localhost:8000/api/beach-houses \
-  -H "Accept: application/json"
-```
+Criar nova beach house:
 
-**Criar nova beach house:**
+curl -X POST http://localhost:8000/api/imoveis \
+ -H "Content-Type: application/json" \
+ -H "Accept: application/json" \
+ -d '{
+"nome": "Casa Teste",
+"cidade": "São Paulo",
+"descritivo": "Casa para testes"
+}'
 
-```bash
-curl -X POST http://localhost:8000/api/beach-houses \
-  -H "Content-Type: application/json" \
-  -H "Accept: application/json" \
-  -d '{
-    "nome": "Casa Teste",
-    "cidade": "São Paulo",
-    "descritivo": "Casa para testes"
-  }'
-```
+Usando Postman
 
-### Usando Postman
+Importe a collection disponível em postman_collection.json (se houver).
 
-1. Importe a collection disponível em `postman_collection.json` (se disponível)
-2. Configure a variável de ambiente `base_url` para `http://localhost:8000`
+Configure a variável de ambiente base_url para http://localhost:8000.
 
-## Comandos Úteis
+Comandos Úteis
 
-**Limpar cache:**
+Limpar cache:
 
-```bash
 php artisan cache:clear
 php artisan config:clear
 php artisan route:clear
-```
 
-**Executar testes (se implementados):**
+Executar testes (se implementados):
 
-```bash
 php artisan test
-```
 
-**Ver rotas disponíveis:**
+Ver rotas disponíveis:
 
-```bash
 php artisan route:list
-```
 
-## Tecnologias Utilizadas
+Tecnologias Utilizadas
 
--   Laravel 10.x
--   PHP 8.1+
--   MySQL/PostgreSQL
--   Eloquent ORM
+Laravel 10.x
 
-## Autor
+PHP 8.1+
+
+MySQL/PostgreSQL
+
+Eloquent ORM
+
+Autor
 
 [Seu Nome]
 
-## Link de Demonstração
-
-[Inserir link da API em produção/demo aqui]
-
----
-
-**Observações:**
-
--   Certifique-se de que o PHP e Composer estão instalados e configurados
--   Para ambiente de produção, configure adequadamente as variáveis de ambiente
--   Mantenha o arquivo `.env` seguro e nunca o versione
+Link de Demonstração
