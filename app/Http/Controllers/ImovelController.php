@@ -231,9 +231,9 @@ class ImovelController extends Controller
 
     public function home()
     {
-        return Inertia::render('imoveis.index', [
+        return Inertia::render('Imoveis/Index', [
             'user' => auth()->user(),
-            'properties' => Imovel::all(), // ou Imovel::all()
+            'properties' => Imovel::all(),
         ]);
     }
 }
