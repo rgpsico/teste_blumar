@@ -24,3 +24,19 @@ use App\Http\Controllers\AuthController;
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth');
+
+
+
+
+use App\Http\Controllers\ImovelController;
+
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/logout', [AuthController::class, 'logout']);
+
+    Route::get('/imoveis', [ImovelController::class, 'index']);
+    Route::get('/imoveis/{id}', [ImovelController::class, 'show']);
+    Route::post('/imoveis', [ImovelController::class, 'store']);
+    Route::put('/imoveis/{id}', [ImovelController::class, 'update']);
+    Route::delete('/imoveis/{id}', [ImovelController::class, 'destroy']);
+});

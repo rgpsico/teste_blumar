@@ -9,6 +9,7 @@ class ImovelEndereco extends Model
 {
     use HasFactory;
 
+    protected $table = 'imoveis_enderecos';
     protected $fillable = [
         'imovel_id',
         'pais',
