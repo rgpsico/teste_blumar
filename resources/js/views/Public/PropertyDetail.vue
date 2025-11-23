@@ -1,6 +1,5 @@
 <template>
   <div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-    <!-- Navbar Moderna -->
     <nav class="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-50">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16 items-center">
@@ -37,7 +36,6 @@
       </div>
 
       <div v-else-if="property" class="bg-white rounded-2xl shadow-xl overflow-hidden">
-        <!-- Galeria de Fotos Moderna -->
         <div v-if="property.photos && property.photos.length > 0" class="relative">
           <div class="aspect-[21/9] bg-gradient-to-br from-gray-200 to-gray-300 relative overflow-hidden group">
             <img
@@ -46,16 +44,13 @@
               class="w-full h-full object-cover"
             />
 
-            <!-- Overlay gradient no bottom -->
             <div class="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black/60 to-transparent"></div>
 
-            <!-- Contador de fotos -->
             <div class="absolute top-6 right-6 bg-black/60 backdrop-blur-sm text-white px-4 py-2 rounded-full text-sm font-medium">
               {{ currentPhotoIndex + 1 }} / {{ property.photos.length }}
             </div>
           </div>
 
-          <!-- Navegação de Fotos -->
           <div v-if="property.photos.length > 1" class="absolute inset-0 flex items-center justify-between p-6 pointer-events-none">
             <button
               @click="previousPhoto"
@@ -75,7 +70,6 @@
             </button>
           </div>
 
-          <!-- Miniaturas -->
           <div v-if="property.photos.length > 1" class="px-6 py-4 flex gap-3 overflow-x-auto bg-gray-50">
             <button
               v-for="(photo, index) in property.photos"
@@ -93,9 +87,7 @@
           </div>
         </div>
 
-        <!-- Conteúdo Principal -->
         <div class="grid lg:grid-cols-3 gap-8 p-8">
-          <!-- Coluna Principal -->
           <div class="lg:col-span-2 space-y-8">
             <div>
               <div class="flex items-start justify-between mb-4">
@@ -114,7 +106,6 @@
                 </div>
               </div>
 
-              <!-- Características -->
               <div class="grid grid-cols-3 gap-4 mb-8">
                 <div class="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-xl text-center border border-blue-200">
                   <svg class="w-8 h-8 mx-auto mb-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -140,7 +131,6 @@
               </div>
             </div>
 
-            <!-- Descrição -->
             <div class="bg-gray-50 p-6 rounded-xl">
               <h3 class="text-xl font-bold mb-4 text-gray-800 flex items-center gap-2">
                 <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -151,7 +141,6 @@
               <p class="text-gray-700 whitespace-pre-line leading-relaxed">{{ property.description }}</p>
             </div>
 
-            <!-- Localização -->
             <div class="bg-gray-50 p-6 rounded-xl">
               <h3 class="text-xl font-bold mb-4 text-gray-800 flex items-center gap-2">
                 <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -167,7 +156,6 @@
               </div>
             </div>
 
-            <!-- Vídeo -->
             <div v-if="property.video_url" class="bg-gray-50 p-6 rounded-xl">
               <h3 class="text-xl font-bold mb-4 text-gray-800 flex items-center gap-2">
                 <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -194,7 +182,6 @@
             </div>
           </div>
 
-          <!-- Sidebar - Card de Contato -->
           <div class="lg:col-span-1">
             <div class="sticky top-24 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl shadow-2xl p-8 text-white">
               <div class="text-center mb-6">
@@ -250,10 +237,14 @@
         </div>
       </div>
     </div>
+
+    <ChatWidget :propertyId="property.id" v-if="property" />
+
   </div>
 </template>
 
 <script setup>
+import ChatWidget from '../../components/ChatWidget.vue';
 import { ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import axios from 'axios';

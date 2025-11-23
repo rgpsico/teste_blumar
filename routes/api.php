@@ -9,6 +9,7 @@
  */
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\ChatController;
 use App\Http\Controllers\Api\CommunityController;
 use App\Http\Controllers\Api\ImageUploadController;
 use App\Http\Controllers\Api\PropertyController;
@@ -17,12 +18,15 @@ use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\BeachHouseController;
 use Illuminate\Support\Facades\Route;
 
+Route::get('/faqs', [ChatController::class, 'index']);
+
 // Rotas públicas
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 Route::get('/properties', [PropertyController::class, 'index']);
 Route::get('/properties/{id}', [PropertyController::class, 'show']);
 Route::get('/communities', [CommunityController::class, 'index']);
+
 
 // Rotas protegidas (requerem autenticação)
 Route::middleware('auth:sanctum')->group(function () {

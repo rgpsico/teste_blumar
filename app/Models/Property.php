@@ -37,6 +37,10 @@ class Property extends Model
         return $this->belongsTo(User::class, 'owner_id');
     }
 
+    public function faqs()
+    {
+        return $this->hasMany(\App\Models\PropertyFaq::class);
+    }
     public function tenant()
     {
         return $this->belongsTo(User::class, 'tenant_id');
