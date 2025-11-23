@@ -10,7 +10,7 @@ class PropertyController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Property::with(['owner', 'tenant']);
+        $query = Property::with(['owner', 'tenant', 'community']);
 
         if ($request->user()) {
             if ($request->user()->isOwner()) {
@@ -38,20 +38,29 @@ class PropertyController extends Controller
             'bedrooms' => 'required|integer|min:0',
             'bathrooms' => 'required|integer|min:0',
             'area' => 'required|integer|min:0',
-            'photos' => 'nullable|array',
+            'photos' => 'nullable|array|max:5',
+            'photos.*' => 'nullable|string',
+            'video_url' => 'nullable|string',
+            'community_id' => 'nullable|exists:communities,id',
         ]);
+
+        // Se não especificado community_id, usar a comunidade do proprietário
+        $communityId = $request->community_id ?? $request->user()->community_id;
 
         $property = Property::create([
             ...$request->all(),
             'owner_id' => $request->user()->id,
+            'community_id' => $communityId,
         ]);
+
+        $property->load(['owner', 'tenant', 'community']);
 
         return response()->json($property, 201);
     }
 
     public function show(string $id)
     {
-        $property = Property::with(['owner', 'tenant'])->findOrFail($id);
+        $property = Property::with(['owner', 'tenant', 'community'])->findOrFail($id);
         return response()->json($property);
     }
 
@@ -74,12 +83,16 @@ class PropertyController extends Controller
             'bedrooms' => 'sometimes|integer|min:0',
             'bathrooms' => 'sometimes|integer|min:0',
             'area' => 'sometimes|integer|min:0',
-            'photos' => 'sometimes|array',
+            'photos' => 'sometimes|array|max:5',
+            'photos.*' => 'nullable|string',
+            'video_url' => 'sometimes|nullable|string',
+            'community_id' => 'sometimes|nullable|exists:communities,id',
             'status' => 'sometimes|in:available,rented,maintenance',
             'active' => 'sometimes|boolean',
         ]);
 
         $property->update($request->all());
+        $property->load(['owner', 'tenant', 'community']);
 
         return response()->json($property);
     }

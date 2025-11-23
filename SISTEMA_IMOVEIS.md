@@ -49,8 +49,10 @@ Sistema completo desenvolvido com Laravel + Vue.js 3 para gerenciamento de imóv
 ##### 2. Dashboard Proprietário (`/owner`)
 **Funcionalidades:**
 - Visualizar seus imóveis
-- Adicionar novos imóveis
-- Editar informações dos imóveis
+- **Adicionar novos imóveis com até 5 fotos (URLs)**
+- **Adicionar vídeo do YouTube ou Vimeo (opcional)**
+- **Editar informações dos imóveis (incluindo fotos e vídeo)**
+- Alterar status do imóvel (disponível, alugado, manutenção)
 - Excluir imóveis
 - Ver estatísticas (total, disponíveis, alugados)
 - Gerenciar inquilinos de seus imóveis

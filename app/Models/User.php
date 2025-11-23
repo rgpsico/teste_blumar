@@ -23,6 +23,7 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
+        'community_id',
         'phone',
         'photo',
         'credit_card',
@@ -64,6 +65,11 @@ class User extends Authenticatable
     public function tenantLeases()
     {
         return $this->hasMany(Tenant::class, 'user_id');
+    }
+
+    public function community()
+    {
+        return $this->belongsTo(Community::class);
     }
 
     public function isAdmin()

@@ -9,6 +9,8 @@
  */
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\CommunityController;
+use App\Http\Controllers\Api\ImageUploadController;
 use App\Http\Controllers\Api\PropertyController;
 use App\Http\Controllers\Api\TenantController;
 use App\Http\Controllers\Api\UserController;
@@ -20,6 +22,7 @@ Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 Route::get('/properties', [PropertyController::class, 'index']);
 Route::get('/properties/{id}', [PropertyController::class, 'show']);
+Route::get('/communities', [CommunityController::class, 'index']);
 
 // Rotas protegidas (requerem autenticação)
 Route::middleware('auth:sanctum')->group(function () {
@@ -27,6 +30,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
     Route::put('/profile', [AuthController::class, 'updateProfile']);
+
+    // Image Upload
+    Route::post('/upload-image', [ImageUploadController::class, 'upload']);
+    Route::delete('/delete-image', [ImageUploadController::class, 'delete']);
 
     // Properties
     Route::post('/properties', [PropertyController::class, 'store']);

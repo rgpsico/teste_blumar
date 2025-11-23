@@ -18,6 +18,7 @@ class AuthController extends Controller
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
             'role' => 'required|in:admin,owner,tenant',
+            'community_id' => 'required|exists:communities,id',
             'phone' => 'nullable|string|max:20',
         ]);
 
@@ -26,9 +27,11 @@ class AuthController extends Controller
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'role' => $request->role,
+            'community_id' => $request->community_id,
             'phone' => $request->phone,
         ]);
 
+        $user->load('community');
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
@@ -53,6 +56,7 @@ class AuthController extends Controller
             ]);
         }
 
+        $user->load('community');
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
@@ -73,7 +77,7 @@ class AuthController extends Controller
 
     public function me(Request $request)
     {
-        return response()->json($request->user());
+        return response()->json($request->user()->load('community'));
     }
 
     public function updateProfile(Request $request)
@@ -82,12 +86,23 @@ class AuthController extends Controller
 
         $request->validate([
             'name' => 'sometimes|string|max:255',
-            'phone' => 'sometimes|string|max:20',
-            'photo' => 'sometimes|string',
-            'credit_card' => 'sometimes|string',
+            'email' => 'sometimes|string|email|max:255|unique:users,email,' . $user->id,
+            'phone' => 'sometimes|nullable|string|max:20',
+            'community_id' => 'sometimes|exists:communities,id',
+            'password' => 'sometimes|string|min:8|confirmed',
+            'photo' => 'sometimes|nullable|string',
+            'credit_card' => 'sometimes|nullable|string',
         ]);
 
-        $user->update($request->only(['name', 'phone', 'photo', 'credit_card']));
+        $data = $request->only(['name', 'email', 'phone', 'community_id', 'photo', 'credit_card']);
+
+        // Only update password if provided
+        if ($request->filled('password')) {
+            $data['password'] = Hash::make($request->password);
+        }
+
+        $user->update($data);
+        $user->load('community');
 
         return response()->json($user);
     }

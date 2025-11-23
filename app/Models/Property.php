@@ -8,6 +8,7 @@ class Property extends Model
 {
     protected $fillable = [
         'owner_id',
+        'community_id',
         'tenant_id',
         'title',
         'description',
@@ -20,6 +21,7 @@ class Property extends Model
         'bathrooms',
         'area',
         'photos',
+        'video_url',
         'status',
         'active',
     ];
@@ -38,6 +40,11 @@ class Property extends Model
     public function tenant()
     {
         return $this->belongsTo(User::class, 'tenant_id');
+    }
+
+    public function community()
+    {
+        return $this->belongsTo(Community::class);
     }
 
     public function leases()

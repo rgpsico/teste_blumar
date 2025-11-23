@@ -34,6 +34,20 @@
         </div>
 
         <div class="mb-4">
+          <label class="block text-gray-700 text-sm font-bold mb-2">Comunidade</label>
+          <select
+            v-model="form.community_id"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            required
+          >
+            <option value="">Selecione sua comunidade...</option>
+            <option v-for="community in communities" :key="community.id" :value="community.id">
+              {{ community.name }}
+            </option>
+          </select>
+        </div>
+
+        <div class="mb-4">
           <label class="block text-gray-700 text-sm font-bold mb-2">Tipo de Usuário</label>
           <select
             v-model="form.role"
@@ -89,9 +103,10 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '../../stores/auth';
+import axios from 'axios';
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -100,13 +115,24 @@ const form = ref({
   name: '',
   email: '',
   phone: '',
+  community_id: '',
   role: '',
   password: '',
   password_confirmation: '',
 });
 
+const communities = ref([]);
 const loading = ref(false);
 const error = ref('');
+
+const loadCommunities = async () => {
+  try {
+    const response = await axios.get('/api/communities');
+    communities.value = response.data;
+  } catch (err) {
+    console.error('Erro ao carregar comunidades:', err);
+  }
+};
 
 const handleRegister = async () => {
   loading.value = true;
@@ -131,4 +157,8 @@ const handleRegister = async () => {
     loading.value = false;
   }
 };
+
+onMounted(() => {
+  loadCommunities();
+});
 </script>
