@@ -242,6 +242,20 @@
                           </svg>
                         </button>
                         <button
+                          @click="openFaqModal(property)"
+                          class="p-2 text-gray-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition"
+                          title="Bots e respostas comuns"
+                        >
+                          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              stroke-width="2"
+                              d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4-.8L3 20l1.2-3A7.965 7.965 0 013 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                            />
+                          </svg>
+                        </button>
+                        <button
                           @click="openEditModal(property)"
                           class="p-2 text-gray-600 hover:text-green-600 hover:bg-green-50 rounded-lg transition"
                           title="Editar"
@@ -404,6 +418,92 @@
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Bots/FAQs -->
+    <div
+      v-if="showFaqModal"
+      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+      @click.self="closeFaqModal"
+    >
+      <div class="bg-white rounded-lg p-6 max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+        <div class="flex items-start justify-between">
+          <div>
+            <h2 class="text-2xl font-bold">Bots e respostas rápidas do imóvel</h2>
+            <p class="text-sm text-gray-500">Cadastre mensagens prontas que serão usadas nas respostas automáticas do bot.</p>
+            <p v-if="selectedPropertyForFaqs" class="text-xs text-gray-400 mt-1">
+              Imóvel: {{ selectedPropertyForFaqs.title }}
+            </p>
+          </div>
+          <button class="text-gray-500 hover:text-gray-700" @click="closeFaqModal">&times;</button>
+        </div>
+
+        <div class="mt-6 space-y-6">
+          <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+            <h3 class="text-lg font-semibold text-gray-800 mb-3">Cadastrar nova resposta</h3>
+            <form class="space-y-4" @submit.prevent="saveFaq">
+              <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Pergunta ou gatilho</label>
+                <input
+                  v-model="faqForm.question"
+                  type="text"
+                  class="w-full px-3 py-2 border rounded-md"
+                  placeholder="Ex: Horários de check-in"
+                  required
+                />
+              </div>
+              <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Resposta do bot</label>
+                <textarea
+                  v-model="faqForm.answer"
+                  class="w-full px-3 py-2 border rounded-md"
+                  rows="3"
+                  placeholder="Inclua os detalhes que o bot deve responder"
+                  required
+                ></textarea>
+              </div>
+              <div class="flex justify-end">
+                <button
+                  type="submit"
+                  :disabled="savingFaq"
+                  class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:opacity-50"
+                >
+                  {{ savingFaq ? 'Salvando...' : 'Salvar resposta' }}
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="text-lg font-semibold text-gray-800">Respostas cadastradas</h3>
+              <span class="text-sm text-gray-500">{{ faqs.length }} itens</span>
+            </div>
+
+            <div v-if="faqsLoading" class="text-gray-500">Carregando respostas...</div>
+            <div v-else-if="faqs.length === 0" class="text-gray-500">Nenhuma resposta cadastrada ainda.</div>
+            <div v-else class="space-y-3">
+              <div
+                v-for="faq in faqs"
+                :key="faq.id"
+                class="border border-gray-200 rounded-lg p-4 flex items-start justify-between"
+              >
+                <div>
+                  <p class="text-sm font-semibold text-gray-800">{{ faq.question }}</p>
+                  <p class="text-sm text-gray-600 mt-1 whitespace-pre-line">{{ faq.answer }}</p>
+                </div>
+                <button
+                  class="text-red-500 hover:text-red-700"
+                  :disabled="deletingFaqId === faq.id"
+                  @click="deleteFaq(faq.id)"
+                >
+                  {{ deletingFaqId === faq.id ? 'Excluindo...' : 'Excluir' }}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -664,6 +764,13 @@ const showModal = ref(false);
 const isEditing = ref(false);
 const editingId = ref(null);
 const uploadingPhoto = ref(false);
+const showFaqModal = ref(false);
+const selectedPropertyForFaqs = ref(null);
+const faqs = ref([]);
+const faqsLoading = ref(false);
+const faqForm = ref({ question: '', answer: '' });
+const savingFaq = ref(false);
+const deletingFaqId = ref(null);
 
 const propertyForm = ref({
   title: '',
@@ -706,6 +813,66 @@ const loadCommunities = async () => {
     communities.value = response.data;
   } catch (error) {
     console.error('Erro ao carregar comunidades:', error);
+  }
+};
+
+const openFaqModal = (property) => {
+  selectedPropertyForFaqs.value = property;
+  faqForm.value = { question: '', answer: '' };
+  showFaqModal.value = true;
+  loadFaqs(property.id);
+};
+
+const closeFaqModal = () => {
+  showFaqModal.value = false;
+  selectedPropertyForFaqs.value = null;
+  faqs.value = [];
+  faqForm.value = { question: '', answer: '' };
+};
+
+const loadFaqs = async (propertyId) => {
+  faqsLoading.value = true;
+  try {
+    const response = await axios.get(`/api/properties/${propertyId}/faqs`);
+    faqs.value = response.data;
+  } catch (error) {
+    console.error('Erro ao carregar bots/FAQs:', error);
+    alert('Não foi possível carregar as respostas do imóvel.');
+  } finally {
+    faqsLoading.value = false;
+  }
+};
+
+const saveFaq = async () => {
+  if (!selectedPropertyForFaqs.value) return;
+
+  savingFaq.value = true;
+  try {
+    await axios.post(`/api/properties/${selectedPropertyForFaqs.value.id}/faqs`, faqForm.value);
+    faqForm.value = { question: '', answer: '' };
+    await loadFaqs(selectedPropertyForFaqs.value.id);
+  } catch (error) {
+    console.error('Erro ao salvar FAQ:', error);
+    alert('Erro ao salvar resposta: ' + (error.response?.data?.message || error.message));
+  } finally {
+    savingFaq.value = false;
+  }
+};
+
+const deleteFaq = async (faqId) => {
+  if (!selectedPropertyForFaqs.value || !confirm('Excluir esta resposta?')) {
+    return;
+  }
+
+  deletingFaqId.value = faqId;
+  try {
+    await axios.delete(`/api/faqs/${faqId}`);
+    await loadFaqs(selectedPropertyForFaqs.value.id);
+  } catch (error) {
+    console.error('Erro ao excluir FAQ:', error);
+    alert('Erro ao excluir resposta: ' + (error.response?.data?.message || error.message));
+  } finally {
+    deletingFaqId.value = null;
   }
 };
 
