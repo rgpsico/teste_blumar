@@ -13,10 +13,10 @@ class ChatController extends Controller
     // --- PARTE 1: FAQs (Gerenciamento) ---
 
     // Listar FAQs de um imóvel (Público)
-    public function index(Request $request)
+    public function index(Request $request, $propertyId = null)
     {
-        // Pega o ID da query string (?property_id=...)
-        $propertyId = $request->query('property_id');
+        // Pega o ID da rota (/properties/{propertyId}/faqs) ou da query string (?property_id=...)
+        $propertyId = $propertyId ?? $request->query('property_id');
 
         if (!$propertyId) {
             return response()->json(['error' => 'Property ID required'], 400);
@@ -33,6 +33,12 @@ class ChatController extends Controller
             'answer' => 'required|string',
         ]);
 
+        $property = Property::findOrFail($propertyId);
+
+        if ($request->user()->id !== $property->owner_id) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
         $faq = PropertyFaq::create([
             'property_id' => $propertyId,
             'question' => $request->question,
@@ -43,9 +49,16 @@ class ChatController extends Controller
     }
 
     // Deletar FAQ
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
-        PropertyFaq::destroy($id);
+        $faq = PropertyFaq::findOrFail($id);
+        $property = Property::findOrFail($faq->property_id);
+
+        if ($request->user()->id !== $property->owner_id) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        $faq->delete();
         return response()->noContent();
     }
 
@@ -58,6 +71,7 @@ class ChatController extends Controller
 
         // 2. Buscar dados do imóvel para dar contexto à IA
         $property = Property::with('community')->findOrFail($propertyId);
+        $faqs = PropertyFaq::where('property_id', $propertyId)->get();
 
         // Montar o "Contexto do Sistema"
         $context = "Você é um assistente virtual útil e educado para um imóvel de aluguel. 
@@ -70,7 +84,9 @@ class ChatController extends Controller
         - Preço: R$ {$property->price}
         - Quartos: {$property->bedrooms}, Banheiros: {$property->bathrooms}
         - Condomínio: " . ($property->community ? $property->community->name : 'N/A') . "
-        ";
+
+        Perguntas frequentes fornecidas pelo proprietário:
+        " . $faqs->map(fn ($faq) => "Q: {$faq->question}\nA: {$faq->answer}")->implode("\n\n") . "";
 
         // 3. Chamar DeepSeek API
         $response = Http::withToken(env('DEEP_SEEK_API_KEY'))
