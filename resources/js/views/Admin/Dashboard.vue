@@ -149,7 +149,8 @@ const handleLogout = async () => {
   router.push({ name: 'Home' });
 };
 
-onMounted(() => {
+onMounted(async () => {
+  await authStore.checkAuth();
   loadData();
 });
 </script>

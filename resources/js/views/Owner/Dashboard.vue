@@ -243,10 +243,10 @@
                         </button>
                         <button
                           @click="openFaqModal(property)"
-                          class="p-2 text-gray-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition"
-                          title="Bots e respostas comuns"
+                          class="flex items-center gap-1.5 px-2.5 py-1.5 text-purple-600 hover:text-purple-800 hover:bg-purple-50 rounded-lg transition font-medium text-sm"
+                          title="Treinar Bot - Configurar respostas automáticas"
                         >
-                          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path
                               stroke-linecap="round"
                               stroke-linejoin="round"
@@ -254,6 +254,7 @@
                               d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4-.8L3 20l1.2-3A7.965 7.965 0 013 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
                             />
                           </svg>
+                          <span>Bot</span>
                         </button>
                         <button
                           @click="openEditModal(property)"
@@ -429,21 +430,26 @@
       class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
       @click.self="closeFaqModal"
     >
-      <div class="bg-white rounded-lg p-6 max-w-3xl w-full max-h-[90vh] overflow-y-auto">
-        <div class="flex items-start justify-between">
-          <div>
-            <h2 class="text-2xl font-bold">Bots e respostas rápidas do imóvel</h2>
-            <p class="text-sm text-gray-500">Cadastre mensagens prontas que serão usadas nas respostas automáticas do bot.</p>
-            <p v-if="selectedPropertyForFaqs" class="text-xs text-gray-400 mt-1">
-              Imóvel: {{ selectedPropertyForFaqs.title }}
-            </p>
+      <div class="bg-white rounded-lg overflow-hidden max-w-3xl w-full max-h-[90vh] shadow-2xl">
+        <div class="bg-gradient-to-r from-purple-600 to-indigo-600 p-6 text-white relative">
+          <div class="flex items-center gap-3">
+            <span class="text-4xl">🤖</span>
+            <div>
+              <h2 class="text-2xl font-bold">Treinar Bot</h2>
+              <p class="text-sm text-purple-100 mt-1">Configure respostas automáticas para este imóvel</p>
+              <p v-if="selectedPropertyForFaqs" class="text-xs text-purple-200 mt-1 font-medium">
+                📍 {{ selectedPropertyForFaqs.title }}
+              </p>
+            </div>
           </div>
-          <button class="text-gray-500 hover:text-gray-700" @click="closeFaqModal">&times;</button>
+          <button class="absolute top-4 right-4 text-white hover:text-gray-200 text-3xl font-light" @click="closeFaqModal">&times;</button>
         </div>
 
-        <div class="mt-6 space-y-6">
-          <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
-            <h3 class="text-lg font-semibold text-gray-800 mb-3">Cadastrar nova resposta</h3>
+        <div class="space-y-6">
+          <div class="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-lg p-5 border-2 border-purple-200">
+            <h3 class="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
+              <span class="text-xl">➕</span> Cadastrar nova resposta
+            </h3>
             <form class="space-y-4" @submit.prevent="saveFaq">
               <div>
                 <label class="block text-sm font-semibold text-gray-700 mb-2">Pergunta ou gatilho</label>
@@ -469,38 +475,48 @@
                 <button
                   type="submit"
                   :disabled="savingFaq"
-                  class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:opacity-50"
+                  class="px-6 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg hover:from-purple-700 hover:to-indigo-700 disabled:opacity-50 font-medium shadow-lg transition"
                 >
-                  {{ savingFaq ? 'Salvando...' : 'Salvar resposta' }}
+                  {{ savingFaq ? '💾 Salvando...' : '💾 Salvar resposta' }}
                 </button>
               </div>
             </form>
           </div>
 
           <div>
-            <div class="flex items-center justify-between mb-3">
-              <h3 class="text-lg font-semibold text-gray-800">Respostas cadastradas</h3>
-              <span class="text-sm text-gray-500">{{ faqs.length }} itens</span>
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-lg font-semibold text-gray-800 flex items-center gap-2">
+                <span class="text-xl">📚</span> Respostas cadastradas
+              </h3>
+              <span class="text-sm bg-purple-100 text-purple-700 px-3 py-1 rounded-full font-medium">{{ faqs.length }} itens</span>
             </div>
 
-            <div v-if="faqsLoading" class="text-gray-500">Carregando respostas...</div>
-            <div v-else-if="faqs.length === 0" class="text-gray-500">Nenhuma resposta cadastrada ainda.</div>
-            <div v-else class="space-y-3">
+            <div v-if="faqsLoading" class="text-center text-gray-500 py-8">
+              <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-purple-500 border-t-transparent"></div>
+              <p class="mt-2">Carregando respostas...</p>
+            </div>
+            <div v-else-if="faqs.length === 0" class="text-center text-gray-400 py-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+              <span class="text-4xl block mb-2">📭</span>
+              Nenhuma resposta cadastrada ainda.
+            </div>
+            <div v-else class="space-y-3 max-h-64 overflow-y-auto pr-2">
               <div
                 v-for="faq in faqs"
                 :key="faq.id"
-                class="border border-gray-200 rounded-lg p-4 flex items-start justify-between"
+                class="border-2 border-purple-100 bg-white rounded-lg p-4 flex items-start justify-between hover:shadow-md transition"
               >
-                <div>
-                  <p class="text-sm font-semibold text-gray-800">{{ faq.question }}</p>
-                  <p class="text-sm text-gray-600 mt-1 whitespace-pre-line">{{ faq.answer }}</p>
+                <div class="flex-1">
+                  <p class="text-sm font-semibold text-purple-800 flex items-center gap-2">
+                    <span>❓</span> {{ faq.question }}
+                  </p>
+                  <p class="text-sm text-gray-600 mt-2 whitespace-pre-line pl-5">{{ faq.answer }}</p>
                 </div>
                 <button
-                  class="text-red-500 hover:text-red-700"
+                  class="ml-4 text-red-500 hover:text-red-700 hover:bg-red-50 px-3 py-1 rounded-md transition font-medium text-sm"
                   :disabled="deletingFaqId === faq.id"
                   @click="deleteFaq(faq.id)"
                 >
-                  {{ deletingFaqId === faq.id ? 'Excluindo...' : 'Excluir' }}
+                  {{ deletingFaqId === faq.id ? '🗑️ Excluindo...' : '🗑️ Excluir' }}
                 </button>
               </div>
             </div>
@@ -1079,7 +1095,8 @@ const handleLogout = async () => {
   router.push({ name: 'Home' });
 };
 
-onMounted(() => {
+onMounted(async () => {
+  await authStore.checkAuth();
   loadProperties();
   loadCommunities();
   loadProfileData();

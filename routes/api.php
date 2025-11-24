@@ -18,9 +18,9 @@ use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\BeachHouseController;
 use Illuminate\Support\Facades\Route;
 
+// Rotas públicas de FAQs
 Route::get('/faqs', [ChatController::class, 'index']);
 Route::get('/properties/{propertyId}/faqs', [ChatController::class, 'index']);
-Route::post('/properties/{propertyId}/ask-ai', [ChatController::class, 'askAi']);
 
 // Rotas públicas
 Route::post('/register', [AuthController::class, 'register']);
@@ -45,8 +45,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/properties', [PropertyController::class, 'store']);
     Route::put('/properties/{id}', [PropertyController::class, 'update']);
     Route::delete('/properties/{id}', [PropertyController::class, 'destroy']);
+
+    // Chat/FAQs
     Route::post('/properties/{propertyId}/faqs', [ChatController::class, 'store']);
     Route::delete('/faqs/{id}', [ChatController::class, 'destroy']);
+    Route::post('/properties/{propertyId}/ask-ai', [ChatController::class, 'askAi']);
 
     // Tenants
     Route::apiResource('tenants', TenantController::class);

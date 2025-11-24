@@ -111,12 +111,13 @@ const sendMessage = async () => {
   scrollToBottom();
 
   try {
-    const response = await axios.post(`/api/properties/${props.propertyId}/chat`, {
+    const response = await axios.post(`/api/properties/${props.propertyId}/ask-ai`, {
       message: text
     });
-    
+
     messages.value.push({ text: response.data.reply, isUser: false });
   } catch (error) {
+    console.error("Erro ao enviar mensagem:", error);
     messages.value.push({ text: "Desculpe, tive um problema ao processar sua pergunta.", isUser: false });
   } finally {
     loading.value = false;

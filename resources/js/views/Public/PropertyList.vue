@@ -94,37 +94,166 @@
     </div>
 
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <!-- Filtros Rápidos -->
-      <div class="mb-8 flex flex-wrap gap-3">
+      <!-- Botão Filtros (Mobile) -->
+      <div class="lg:hidden mb-6">
         <button
-          @click="quickFilter = null"
-          :class="quickFilter === null ? 'bg-blue-600 text-white' : 'bg-white text-gray-700'"
-          class="px-6 py-2 rounded-full shadow-sm hover:shadow-md transition font-medium"
+          @click="showFilters = !showFilters"
+          class="w-full bg-white text-gray-800 px-6 py-3 rounded-xl shadow-md hover:shadow-lg transition font-semibold flex items-center justify-center gap-2"
         >
-          Todos
-        </button>
-        <button
-          @click="quickFilter = 'bedrooms-1'"
-          :class="quickFilter === 'bedrooms-1' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700'"
-          class="px-6 py-2 rounded-full shadow-sm hover:shadow-md transition font-medium"
-        >
-          1 Quarto
-        </button>
-        <button
-          @click="quickFilter = 'bedrooms-2'"
-          :class="quickFilter === 'bedrooms-2' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700'"
-          class="px-6 py-2 rounded-full shadow-sm hover:shadow-md transition font-medium"
-        >
-          2 Quartos
-        </button>
-        <button
-          @click="quickFilter = 'bedrooms-3'"
-          :class="quickFilter === 'bedrooms-3' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700'"
-          class="px-6 py-2 rounded-full shadow-sm hover:shadow-md transition font-medium"
-        >
-          3+ Quartos
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+          </svg>
+          Filtros Avançados
+          <span v-if="activeFiltersCount > 0" class="bg-blue-600 text-white text-xs px-2 py-1 rounded-full">
+            {{ activeFiltersCount }}
+          </span>
         </button>
       </div>
+
+      <div class="flex gap-8">
+        <!-- Painel de Filtros -->
+        <aside
+          :class="showFilters ? 'block' : 'hidden lg:block'"
+          class="lg:w-80 w-full bg-white rounded-2xl shadow-lg p-6 h-fit sticky top-24"
+        >
+          <div class="flex items-center justify-between mb-6">
+            <h3 class="text-xl font-bold text-gray-800 flex items-center gap-2">
+              <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+              </svg>
+              Filtros
+            </h3>
+            <button
+              v-if="activeFiltersCount > 0"
+              @click="clearFilters"
+              class="text-sm text-blue-600 hover:text-blue-700 font-medium"
+            >
+              Limpar
+            </button>
+          </div>
+
+          <div class="space-y-6">
+            <!-- Comunidade -->
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-2">Comunidade</label>
+              <select
+                v-model="filters.community_id"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option :value="null">Todas as comunidades</option>
+                <option v-for="community in communities" :key="community.id" :value="community.id">
+                  {{ community.name }}
+                </option>
+              </select>
+            </div>
+
+            <!-- Preço -->
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-2">Faixa de Preço</label>
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <input
+                    v-model.number="filters.minPrice"
+                    type="number"
+                    placeholder="Mín"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                  />
+                </div>
+                <div>
+                  <input
+                    v-model.number="filters.maxPrice"
+                    type="number"
+                    placeholder="Máx"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                  />
+                </div>
+              </div>
+              <div v-if="filters.minPrice || filters.maxPrice" class="mt-2 text-xs text-gray-600">
+                <span v-if="filters.minPrice">R$ {{ formatPrice(filters.minPrice) }}</span>
+                <span v-if="filters.minPrice && filters.maxPrice"> - </span>
+                <span v-if="filters.maxPrice">R$ {{ formatPrice(filters.maxPrice) }}</span>
+              </div>
+            </div>
+
+            <!-- Quartos -->
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-3">Quartos</label>
+              <div class="grid grid-cols-4 gap-2">
+                <button
+                  v-for="num in [1, 2, 3, 4]"
+                  :key="num"
+                  @click="filters.bedrooms = filters.bedrooms === num ? null : num"
+                  :class="filters.bedrooms === num ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
+                  class="py-2 rounded-lg font-medium transition text-sm"
+                >
+                  {{ num }}{{ num === 4 ? '+' : '' }}
+                </button>
+              </div>
+            </div>
+
+            <!-- Banheiros -->
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-3">Banheiros</label>
+              <div class="grid grid-cols-4 gap-2">
+                <button
+                  v-for="num in [1, 2, 3, 4]"
+                  :key="num"
+                  @click="filters.bathrooms = filters.bathrooms === num ? null : num"
+                  :class="filters.bathrooms === num ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
+                  class="py-2 rounded-lg font-medium transition text-sm"
+                >
+                  {{ num }}{{ num === 4 ? '+' : '' }}
+                </button>
+              </div>
+            </div>
+
+            <!-- Área Mínima -->
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-2">Área Mínima (m²)</label>
+              <input
+                v-model.number="filters.minArea"
+                type="number"
+                placeholder="Ex: 50"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+
+            <!-- Status -->
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-3">Status</label>
+              <div class="grid grid-cols-2 gap-2">
+                <button
+                  @click="filters.status = filters.status === 'available' ? null : 'available'"
+                  :class="filters.status === 'available' ? 'bg-green-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
+                  class="py-2 rounded-lg font-medium transition text-sm"
+                >
+                  Disponível
+                </button>
+                <button
+                  @click="filters.status = filters.status === 'rented' ? null : 'rented'"
+                  :class="filters.status === 'rented' ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
+                  class="py-2 rounded-lg font-medium transition text-sm"
+                >
+                  Alugado
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Resumo de Filtros Ativos -->
+          <div v-if="activeFiltersCount > 0" class="mt-6 pt-6 border-t border-gray-200">
+            <div class="text-sm text-gray-600 mb-2">{{ activeFiltersCount }} filtro(s) ativo(s)</div>
+            <button
+              @click="clearFilters"
+              class="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 rounded-lg font-medium transition"
+            >
+              Limpar Todos
+            </button>
+          </div>
+        </aside>
+
+        <!-- Lista de Imóveis -->
+        <div class="flex-1">
 
       <div v-if="loading" class="text-center py-20">
         <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
@@ -232,6 +361,8 @@
           </div>
         </div>
       </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -246,9 +377,20 @@ const router = useRouter();
 const authStore = useAuthStore();
 
 const properties = ref([]);
+const communities = ref([]);
 const loading = ref(true);
 const searchQuery = ref('');
-const quickFilter = ref(null);
+const showFilters = ref(false);
+
+const filters = ref({
+  community_id: null,
+  minPrice: null,
+  maxPrice: null,
+  bedrooms: null,
+  bathrooms: null,
+  minArea: null,
+  status: null,
+});
 
 const loadProperties = async () => {
   try {
@@ -261,10 +403,19 @@ const loadProperties = async () => {
   }
 };
 
+const loadCommunities = async () => {
+  try {
+    const response = await axios.get('/api/communities');
+    communities.value = response.data;
+  } catch (error) {
+    console.error('Erro ao carregar comunidades:', error);
+  }
+};
+
 const filteredProperties = computed(() => {
   let result = properties.value;
 
-  // Filtro de busca
+  // Filtro de busca por texto
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase();
     result = result.filter(
@@ -272,21 +423,81 @@ const filteredProperties = computed(() => {
         property.title.toLowerCase().includes(query) ||
         property.city.toLowerCase().includes(query) ||
         property.state.toLowerCase().includes(query) ||
-        property.description.toLowerCase().includes(query)
+        property.description.toLowerCase().includes(query) ||
+        property.address?.toLowerCase().includes(query)
     );
   }
 
-  // Filtro rápido por quartos
-  if (quickFilter.value === 'bedrooms-1') {
-    result = result.filter((property) => property.bedrooms === 1);
-  } else if (quickFilter.value === 'bedrooms-2') {
-    result = result.filter((property) => property.bedrooms === 2);
-  } else if (quickFilter.value === 'bedrooms-3') {
-    result = result.filter((property) => property.bedrooms >= 3);
+  // Filtro por comunidade
+  if (filters.value.community_id) {
+    result = result.filter((property) => property.community_id === filters.value.community_id);
+  }
+
+  // Filtro por preço mínimo
+  if (filters.value.minPrice) {
+    result = result.filter((property) => property.price >= filters.value.minPrice);
+  }
+
+  // Filtro por preço máximo
+  if (filters.value.maxPrice) {
+    result = result.filter((property) => property.price <= filters.value.maxPrice);
+  }
+
+  // Filtro por quartos
+  if (filters.value.bedrooms) {
+    if (filters.value.bedrooms === 4) {
+      result = result.filter((property) => property.bedrooms >= 4);
+    } else {
+      result = result.filter((property) => property.bedrooms === filters.value.bedrooms);
+    }
+  }
+
+  // Filtro por banheiros
+  if (filters.value.bathrooms) {
+    if (filters.value.bathrooms === 4) {
+      result = result.filter((property) => property.bathrooms >= 4);
+    } else {
+      result = result.filter((property) => property.bathrooms === filters.value.bathrooms);
+    }
+  }
+
+  // Filtro por área mínima
+  if (filters.value.minArea) {
+    result = result.filter((property) => property.area >= filters.value.minArea);
+  }
+
+  // Filtro por status
+  if (filters.value.status) {
+    result = result.filter((property) => property.status === filters.value.status);
   }
 
   return result;
 });
+
+const activeFiltersCount = computed(() => {
+  let count = 0;
+  if (filters.value.community_id) count++;
+  if (filters.value.minPrice) count++;
+  if (filters.value.maxPrice) count++;
+  if (filters.value.bedrooms) count++;
+  if (filters.value.bathrooms) count++;
+  if (filters.value.minArea) count++;
+  if (filters.value.status) count++;
+  return count;
+});
+
+const clearFilters = () => {
+  filters.value = {
+    community_id: null,
+    minPrice: null,
+    maxPrice: null,
+    bedrooms: null,
+    bathrooms: null,
+    minArea: null,
+    status: null,
+  };
+  searchQuery.value = '';
+};
 
 const filterProperties = () => {
   // A filtragem acontece automaticamente via computed
@@ -309,15 +520,9 @@ const handleLogout = async () => {
   router.push({ name: 'Home' });
 };
 
-// Limpar filtro rápido quando buscar por texto
-watch(searchQuery, () => {
-  if (searchQuery.value) {
-    quickFilter.value = null;
-  }
-});
-
 onMounted(() => {
   loadProperties();
+  loadCommunities();
 });
 </script>
 
