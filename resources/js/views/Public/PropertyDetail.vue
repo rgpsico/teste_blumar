@@ -239,6 +239,15 @@
                 Agendar Visita
               </button>
             </div>
+
+            <!-- AdSense Sidebar Ad -->
+            <div class="mt-6 bg-white rounded-2xl overflow-hidden shadow-lg">
+              <AdSense
+                ad-slot="0987654321"
+                ad-format="auto"
+                :style="{ display: 'block', minHeight: '250px' }"
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -246,11 +255,14 @@
 
     <ChatWidget :propertyId="property.id" v-if="property" />
 
+    <Footer />
   </div>
 </template>
 
 <script setup>
 import ChatWidget from '../../components/ChatWidget.vue';
+import AdSense from '../../components/AdSense.vue';
+import Footer from '../../components/Footer.vue';
 import { ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import axios from 'axios';

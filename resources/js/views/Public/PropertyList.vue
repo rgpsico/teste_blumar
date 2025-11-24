@@ -275,9 +275,8 @@
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <template v-for="(property, index) in filteredProperties" :key="property.id">
           <div
-            v-for="property in filteredProperties"
-            :key="property.id"
             class="group bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-2xl transition-all duration-300 cursor-pointer transform hover:-translate-y-2"
             @click="goToProperty(property.id)"
           >
@@ -359,11 +358,23 @@
               </div>
             </div>
           </div>
+
+          <!-- AdSense a cada 6 imóveis -->
+          <div v-if="(index + 1) % 6 === 0 && index !== filteredProperties.length - 1"
+               class="col-span-full my-4">
+            <AdSense
+              ad-slot="1234567890"
+              :style="{ display: 'block', minHeight: '90px' }"
+            />
+          </div>
+          </template>
         </div>
       </div>
         </div>
       </div>
     </div>
+
+    <Footer />
   </div>
 </template>
 
@@ -372,6 +383,8 @@ import { ref, onMounted, computed, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '../../stores/auth';
 import axios from 'axios';
+import AdSense from '../../components/AdSense.vue';
+import Footer from '../../components/Footer.vue';
 
 const router = useRouter();
 const authStore = useAuthStore();
