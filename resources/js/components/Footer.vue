@@ -23,7 +23,7 @@
               </svg>
             </div>
             <div class="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-              ImoveisPro
+              FavelaImoveis
             </div>
           </div>
           <p class="text-gray-400 text-sm">
@@ -61,7 +61,7 @@
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
               </svg>
-              contato@imoveispro.com
+              contato@favelaimoveis.com
             </li>
             <li class="flex items-center gap-2">
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -76,7 +76,7 @@
       <!-- Copyright -->
       <div class="border-t border-gray-700 mt-8 pt-8 text-center">
         <p class="text-gray-400 text-sm">
-          &copy; {{ new Date().getFullYear() }} ImoveisPro. Todos os direitos reservados.
+          &copy; {{ new Date().getFullYear() }} FavelaImoveis. Todos os direitos reservados.
         </p>
       </div>
     </div>
