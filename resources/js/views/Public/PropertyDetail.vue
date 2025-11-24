@@ -37,7 +37,7 @@
 
       <div v-else-if="property" class="bg-white rounded-2xl shadow-xl overflow-hidden">
         <div v-if="property.photos && property.photos.length > 0" class="relative">
-          <div class="aspect-[21/9] bg-gradient-to-br from-gray-200 to-gray-300 relative overflow-hidden group">
+          <div class="aspect-[21/9] md:aspect-[21/9] aspect-[4/3] bg-gradient-to-br from-gray-200 to-gray-300 relative overflow-hidden group">
             <img
               :src="property.photos[currentPhotoIndex]"
               :alt="property.title"
@@ -156,22 +156,38 @@
               </div>
             </div>
 
-            <div v-if="property.video_url" class="bg-gray-50 p-6 rounded-xl">
-              <h3 class="text-xl font-bold mb-4 text-gray-800 flex items-center gap-2">
-                <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                Tour Virtual
-              </h3>
-              <div class="aspect-video bg-gray-900 rounded-lg overflow-hidden shadow-lg">
+            <div v-if="property.video_url" class="bg-gray-50 p-4 md:p-6 rounded-xl">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg md:text-xl font-bold text-gray-800 flex items-center gap-2">
+                  <svg class="w-5 h-5 md:w-6 md:h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  Tour Virtual
+                </h3>
+                <button
+                  @click="toggleFullscreen"
+                  class="md:hidden bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition"
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                  </svg>
+                  Maximizar
+                </button>
+              </div>
+              <div
+                ref="videoContainer"
+                class="aspect-video md:aspect-video aspect-[16/12] bg-gray-900 rounded-lg overflow-hidden shadow-lg relative"
+              >
                 <iframe
                   v-if="getEmbedUrl(property.video_url)"
                   :src="getEmbedUrl(property.video_url)"
                   class="w-full h-full"
                   frameborder="0"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
                   allowfullscreen
+                  webkitallowfullscreen
+                  mozallowfullscreen
                 ></iframe>
                 <div v-else class="flex items-center justify-center h-full text-gray-400">
                   <a :href="property.video_url" target="_blank" class="text-blue-400 hover:text-blue-300 underline">
@@ -271,6 +287,7 @@ const route = useRoute();
 const property = ref(null);
 const loading = ref(true);
 const currentPhotoIndex = ref(0);
+const videoContainer = ref(null);
 
 const loadProperty = async () => {
   try {
@@ -323,6 +340,37 @@ const getEmbedUrl = (url) => {
   }
 
   return null;
+};
+
+const toggleFullscreen = () => {
+  if (!videoContainer.value) return;
+
+  if (!document.fullscreenElement) {
+    // Entrar em tela cheia
+    if (videoContainer.value.requestFullscreen) {
+      videoContainer.value.requestFullscreen();
+    } else if (videoContainer.value.webkitRequestFullscreen) {
+      // Safari
+      videoContainer.value.webkitRequestFullscreen();
+    } else if (videoContainer.value.mozRequestFullScreen) {
+      // Firefox
+      videoContainer.value.mozRequestFullScreen();
+    } else if (videoContainer.value.msRequestFullscreen) {
+      // IE/Edge
+      videoContainer.value.msRequestFullscreen();
+    }
+  } else {
+    // Sair de tela cheia
+    if (document.exitFullscreen) {
+      document.exitFullscreen();
+    } else if (document.webkitExitFullscreen) {
+      document.webkitExitFullscreen();
+    } else if (document.mozCancelFullScreen) {
+      document.mozCancelFullScreen();
+    } else if (document.msExitFullscreen) {
+      document.msExitFullscreen();
+    }
+  }
 };
 
 const contactViaWhatsApp = () => {
