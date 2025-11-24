@@ -37,7 +37,7 @@
 
       <div v-else-if="property" class="bg-white rounded-2xl shadow-xl overflow-hidden">
         <div v-if="property.photos && property.photos.length > 0" class="relative">
-          <div class="aspect-[21/9] md:aspect-[21/9] aspect-[4/3] bg-gradient-to-br from-gray-200 to-gray-300 relative overflow-hidden group">
+          <div class="aspect-square md:aspect-[21/9] bg-gradient-to-br from-gray-200 to-gray-300 relative overflow-hidden group">
             <img
               :src="property.photos[currentPhotoIndex]"
               :alt="property.title"
