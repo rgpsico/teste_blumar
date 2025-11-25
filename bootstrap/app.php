@@ -13,13 +13,15 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Adicionar TrackVisitor tanto para web quanto API
+        // Para SPAs, precisamos rastrear nas rotas API também
         $middleware->web(append: [
             \App\Http\Middleware\TrackVisitor::class,
         ]);
 
-        // Configurar middlewares da API (sem CSRF)
-        $middleware->api(prepend: [
-            \Illuminate\Routing\Middleware\SubstituteBindings::class,
+        // Configurar middlewares da API
+        $middleware->api(append: [
+            \App\Http\Middleware\TrackVisitor::class, // Rastrear visitantes nas chamadas API
         ]);
 
         // Excluir rotas API da verificação CSRF

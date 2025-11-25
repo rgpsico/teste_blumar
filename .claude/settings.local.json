@@ -7,7 +7,9 @@
       "Bash(npm run dev:*)",
       "Bash(timeout 3 echo:*)",
       "Bash(test:*)",
-      "Bash(/c/Program Files/nodejs/npm.cmd run build)"
+      "Bash(/c/Program Files/nodejs/npm.cmd run build)",
+      "Bash(c:laragonbinphpphp-8.3.11-Win32-vs16-x64php.exe artisan migrate:status:*)",
+      "Bash(/c/laragon/bin/php/php-8.3.11-Win32-vs16-x64/php.exe artisan:*)"
     ],
     "deny": [],
     "ask": []
