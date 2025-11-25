@@ -440,24 +440,44 @@ const communitiesColumns = [
 
 const visitorLogsColumns = [
   { key: 'id', label: 'ID', cellClass: 'font-mono text-gray-500' },
-  { key: 'ip_address', label: 'IP' },
-  { key: 'user_agent', label: 'Navegador' },
+  {
+    key: 'ip_address',
+    label: 'IP',
+    format: (value) => value || '-'
+  },
+  {
+    key: 'user_agent',
+    label: 'Navegador',
+    format: (value) => value ? value.substring(0, 50) + (value.length > 50 ? '...' : '') : '-'
+  },
   {
     key: 'created_at',
     label: 'Data',
-    format: (value) => new Date(value).toLocaleString('pt-BR')
+    format: (value) => value ? new Date(value).toLocaleString('pt-BR') : '-'
   }
 ];
 
 const registrationLogsColumns = [
   { key: 'id', label: 'ID', cellClass: 'font-mono text-gray-500' },
-  { key: 'user.name', label: 'Usuário' },
-  { key: 'user.email', label: 'Email' },
-  { key: 'user.role', label: 'Tipo', format: (value) => getRoleLabel(value) },
+  {
+    key: 'user.name',
+    label: 'Usuário',
+    format: (value, item) => item.user?.name || '-'
+  },
+  {
+    key: 'user.email',
+    label: 'Email',
+    format: (value, item) => item.user?.email || '-'
+  },
+  {
+    key: 'user.role',
+    label: 'Tipo',
+    format: (value, item) => item.user?.role ? getRoleLabel(item.user.role) : '-'
+  },
   {
     key: 'created_at',
     label: 'Data',
-    format: (value) => new Date(value).toLocaleString('pt-BR')
+    format: (value) => value ? new Date(value).toLocaleString('pt-BR') : '-'
   }
 ];
 
@@ -534,13 +554,13 @@ const loadDashboardData = async () => {
     axios.get('/api/communities')
   ]);
 
-  const allUsers = usersRes.data.data || usersRes.data;
-  const allProperties = propertiesRes.data.data || propertiesRes.data;
-  const allCommunities = communitiesRes.data;
+  const allUsers = Array.isArray(usersRes.data.data) ? usersRes.data.data : (Array.isArray(usersRes.data) ? usersRes.data : []);
+  const allProperties = Array.isArray(propertiesRes.data.data) ? propertiesRes.data.data : (Array.isArray(propertiesRes.data) ? propertiesRes.data : []);
+  const allCommunities = Array.isArray(communitiesRes.data) ? communitiesRes.data : [];
 
   stats.value.users = allUsers.length;
   stats.value.properties = allProperties.length;
-  stats.value.rented = allProperties.filter(p => p.status === 'rented').length;
+  stats.value.rented = allProperties.filter(p => p && p.status === 'rented').length;
   stats.value.communities = allCommunities.length;
 
   recentUsers.value = allUsers.slice(0, 5);
@@ -548,24 +568,25 @@ const loadDashboardData = async () => {
 
 const loadOwners = async () => {
   const response = await axios.get('/api/users');
-  const allUsers = response.data.data || response.data;
-  owners.value = allUsers.filter(u => u.role === 'owner');
+  const allUsers = Array.isArray(response.data.data) ? response.data.data : (Array.isArray(response.data) ? response.data : []);
+  owners.value = allUsers.filter(u => u && u.role === 'owner');
 };
 
 const loadTenants = async () => {
   const response = await axios.get('/api/users');
-  const allUsers = response.data.data || response.data;
-  tenants.value = allUsers.filter(u => u.role === 'tenant');
+  const allUsers = Array.isArray(response.data.data) ? response.data.data : (Array.isArray(response.data) ? response.data : []);
+  tenants.value = allUsers.filter(u => u && u.role === 'tenant');
 };
 
 const loadProperties = async () => {
   const response = await axios.get('/api/properties');
-  properties.value = response.data.data || response.data;
+  const allProperties = Array.isArray(response.data.data) ? response.data.data : (Array.isArray(response.data) ? response.data : []);
+  properties.value = allProperties;
 };
 
 const loadCommunities = async () => {
   const response = await axios.get('/api/communities');
-  communities.value = response.data;
+  communities.value = Array.isArray(response.data) ? response.data : [];
 };
 
 const loadLogs = async () => {
@@ -574,10 +595,19 @@ const loadLogs = async () => {
       axios.get('/api/admin/visitor-logs'),
       axios.get('/api/admin/registration-logs')
     ]);
-    visitorLogs.value = visitorsRes.data;
-    registrationLogs.value = registrationsRes.data;
+
+    // Garantir que sempre sejam arrays
+    visitorLogs.value = Array.isArray(visitorsRes.data) ? visitorsRes.data : [];
+    registrationLogs.value = Array.isArray(registrationsRes.data) ? registrationsRes.data : [];
+
+    // Filtrar itens válidos
+    visitorLogs.value = visitorLogs.value.filter(log => log && log.id);
+    registrationLogs.value = registrationLogs.value.filter(log => log && log.id);
   } catch (error) {
     console.error('Erro ao carregar logs:', error);
+    // Em caso de erro, garantir arrays vazios
+    visitorLogs.value = [];
+    registrationLogs.value = [];
   }
 };
 
