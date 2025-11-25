@@ -197,7 +197,7 @@
                         </div>
                         <div class="flex-1 min-w-0">
                           <p class="font-semibold text-gray-900 truncate">{{ property.title }}</p>
-                          <p class="text-sm text-gray-500 truncate">{{ property.description }}</p>
+                          <p class="text-sm text-gray-500 truncate">{{ property.description_short }}</p>
                         </div>
                       </div>
                     </td>

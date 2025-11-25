@@ -81,7 +81,7 @@
             :key="property.id"
             class="border rounded-lg p-4 hover:shadow-md transition"
           >
-            <h3 class="font-bold mb-2">{{ property.title }}</h3>
+            <h3 class="font-bold mb-2 truncate" :title="property.title">{{ property.title }}</h3>
             <p class="text-sm text-gray-600 mb-2">{{ property.city }}</p>
             <div class="text-lg font-bold text-blue-600 mb-2">
               R$ {{ formatPrice(property.price) }}

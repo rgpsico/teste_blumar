@@ -320,7 +320,7 @@
                 {{ property.city }}, {{ property.state }}
               </div>
 
-              <p class="text-gray-600 mb-4 line-clamp-2 text-sm">{{ property.description }}</p>
+              <p class="text-gray-600 mb-4 line-clamp-2 text-sm">{{ property.description_short }}</p>
 
               <div class="flex items-center justify-between text-sm text-gray-700 mb-4 bg-gray-50 p-3 rounded-lg">
                 <div class="flex items-center gap-1">
