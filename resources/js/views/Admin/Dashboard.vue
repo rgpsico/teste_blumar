@@ -596,13 +596,21 @@ const loadLogs = async () => {
       axios.get('/api/admin/registration-logs')
     ]);
 
+    // A API retorna dados paginados: { data: [...], current_page, per_page, total }
+    // Extrair o array de dados de dentro da resposta paginada
+    const visitorsData = visitorsRes.data?.data || visitorsRes.data || [];
+    const registrationsData = registrationsRes.data?.data || registrationsRes.data || [];
+
     // Garantir que sempre sejam arrays
-    visitorLogs.value = Array.isArray(visitorsRes.data) ? visitorsRes.data : [];
-    registrationLogs.value = Array.isArray(registrationsRes.data) ? registrationsRes.data : [];
+    visitorLogs.value = Array.isArray(visitorsData) ? visitorsData : [];
+    registrationLogs.value = Array.isArray(registrationsData) ? registrationsData : [];
 
     // Filtrar itens válidos
     visitorLogs.value = visitorLogs.value.filter(log => log && log.id);
     registrationLogs.value = registrationLogs.value.filter(log => log && log.id);
+
+    console.log('Visitor logs carregados:', visitorLogs.value.length);
+    console.log('Registration logs carregados:', registrationLogs.value.length);
   } catch (error) {
     console.error('Erro ao carregar logs:', error);
     // Em caso de erro, garantir arrays vazios

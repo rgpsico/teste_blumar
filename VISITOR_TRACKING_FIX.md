@@ -198,12 +198,22 @@ Este script verifica:
 php artisan migrate
 ```
 
-### 3. Testar Manualmente
+### 3. Compilar Frontend (IMPORTANTE!)
+```bash
+npm run build
+```
+ou execute o arquivo:
+```bash
+build-fix-logs.bat
+```
+
+### 4. Testar Manualmente
 1. Acesse `http://localhost/` no navegador
 2. Navegue para a listagem de imóveis
 3. Clique em um imóvel específico
 4. No painel admin, vá para "Logs do Sistema"
 5. Verifique se os logs aparecem
+6. Abra o console do navegador (F12) e veja: "Visitor logs carregados: X"
 
 ### 4. Verificar Logs Laravel
 ```bash
@@ -262,6 +272,24 @@ protected function schedule(Schedule $schedule)
 
 ### Logs Não Aparecem no Dashboard
 
+**Problema**: A API retorna dados (`/api/admin/visitor-logs` funciona), mas nada aparece na tela.
+
+**Causa**: A API retorna resposta paginada com estrutura `{ data: [...], current_page, per_page }`, mas o frontend estava esperando um array direto.
+
+**Solução**: Já corrigido! Agora o código extrai corretamente:
+```javascript
+const visitorsData = visitorsRes.data?.data || visitorsRes.data || [];
+```
+
+**Para aplicar a correção:**
+1. Execute `npm run build` ou `build-fix-logs.bat`
+2. Recarregue a página com Ctrl+F5
+3. Abra o console (F12) e veja: "Visitor logs carregados: X"
+
+---
+
+**Outras verificações:**
+
 1. **Verificar se a tabela existe:**
    ```bash
    php artisan migrate
@@ -281,6 +309,21 @@ protected function schedule(Schedule $schedule)
 4. **Verificar permissões do usuário:**
    - Apenas admins podem ver logs
    - Verificar `role === 'admin'` no banco
+
+5. **Testar a API diretamente:**
+   ```bash
+   # No navegador ou Postman
+   GET https://imoveis.comunidadeppg.com.br/api/admin/visitor-logs
+   Authorization: Bearer SEU_TOKEN
+   ```
+   Deve retornar:
+   ```json
+   {
+     "data": [...],
+     "current_page": 1,
+     "per_page": 50
+   }
+   ```
 
 ### Erro "Table 'visitor_logs' doesn't exist"
 
