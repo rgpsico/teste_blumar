@@ -8,11 +8,13 @@
  * )
  */
 
+use App\Http\Controllers\Api\AnalyticsController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ChatController;
 use App\Http\Controllers\Api\CommunityController;
 use App\Http\Controllers\Api\ImageUploadController;
 use App\Http\Controllers\Api\PropertyController;
+use App\Http\Controllers\Api\PropertyMessageController;
 use App\Http\Controllers\Api\TenantController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\BeachHouseController;
@@ -28,6 +30,9 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::get('/properties', [PropertyController::class, 'index']);
 Route::get('/properties/{id}', [PropertyController::class, 'show']);
 Route::get('/communities', [CommunityController::class, 'index']);
+
+// Mensagens públicas (envio de pergunta sobre imóvel)
+Route::post('/properties/{propertyId}/messages', [PropertyMessageController::class, 'store']);
 
 
 // Rotas protegidas (requerem autenticação)
@@ -53,6 +58,17 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Tenants
     Route::apiResource('tenants', TenantController::class);
+
+    // Property Messages (Owner)
+    Route::get('/owner/messages', [PropertyMessageController::class, 'getOwnerMessages']);
+    Route::put('/messages/{messageId}/read', [PropertyMessageController::class, 'markAsRead']);
+    Route::put('/messages/read-all', [PropertyMessageController::class, 'markAllAsRead']);
+    Route::delete('/messages/{messageId}', [PropertyMessageController::class, 'deleteMessage']);
+
+    // Analytics (Admin only)
+    Route::get('/admin/analytics', [AnalyticsController::class, 'getAdminAnalytics']);
+    Route::get('/admin/visitor-logs', [AnalyticsController::class, 'getVisitorLogs']);
+    Route::get('/admin/registration-logs', [AnalyticsController::class, 'getRegistrationLogs']);
 
     // Users (Admin only)
     Route::middleware('can:admin')->group(function () {

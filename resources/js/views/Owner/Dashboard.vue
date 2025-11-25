@@ -10,7 +10,7 @@
             </svg>
           </div>
           <div>
-            <div class="font-bold text-lg">FavelaImoveis</div>
+            <div class="font-bold text-lg">FIMOVEIS</div>
             <div class="text-xs text-white/70">Painel do Proprietário</div>
           </div>
         </div>

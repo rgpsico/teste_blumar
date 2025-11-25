@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\RegistrationLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -29,6 +30,15 @@ class AuthController extends Controller
             'role' => $request->role,
             'community_id' => $request->community_id,
             'phone' => $request->phone,
+        ]);
+
+        // Registrar log de registro
+        RegistrationLog::create([
+            'user_id' => $user->id,
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+            'user_type' => $request->role,
+            'registered_at' => now(),
         ]);
 
         $user->load('community');
