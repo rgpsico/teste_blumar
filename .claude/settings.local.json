@@ -5,7 +5,9 @@
       "Bash(php artisan:*)",
       "Bash(npm run build:*)",
       "Bash(npm run dev:*)",
-      "Bash(timeout 3 echo:*)"
+      "Bash(timeout 3 echo:*)",
+      "Bash(test:*)",
+      "Bash(/c/Program Files/nodejs/npm.cmd run build)"
     ],
     "deny": [],
     "ask": []
