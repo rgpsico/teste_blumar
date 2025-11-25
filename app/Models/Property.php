@@ -32,6 +32,19 @@ class Property extends Model
         'active' => 'boolean',
     ];
 
+    protected $appends = ['description_short'];
+
+    public function getDescriptionShortAttribute()
+    {
+        if (empty($this->description)) {
+            return '';
+        }
+
+        return strlen($this->description) > 20
+            ? substr($this->description, 0, 20) . '...'
+            : $this->description;
+    }
+
     public function owner()
     {
         return $this->belongsTo(User::class, 'owner_id');
