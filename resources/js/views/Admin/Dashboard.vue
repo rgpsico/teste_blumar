@@ -1,130 +1,583 @@
 <template>
-  <div class="min-h-screen bg-gray-50">
-    <nav class="bg-white shadow-sm">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between h-16 items-center">
-          <div class="text-2xl font-bold text-blue-600">Admin Dashboard</div>
-          <div class="flex space-x-4 items-center">
-            <span class="text-gray-600">{{ authStore.user?.name }}</span>
-            <router-link to="/" class="text-gray-700 hover:text-blue-600">
-              Home
-            </router-link>
-            <button
-              @click="handleLogout"
-              class="text-gray-700 hover:text-blue-600"
-            >
-              Sair
-            </button>
+  <div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex">
+    <!-- Sidebar -->
+    <Sidebar
+      :isOpen="sidebarOpen"
+      :currentView="currentView"
+      @toggle="sidebarOpen = false"
+      @navigate="handleNavigate"
+    />
+
+    <!-- Main Content -->
+    <div class="flex-1 flex flex-col min-w-0" :class="{ 'lg:ml-64': true }">
+      <!-- Header -->
+      <Header
+        :title="pageTitle"
+        :subtitle="pageSubtitle"
+        :user="authStore.user"
+        :notificationCount="unreadNotifications"
+        @toggle-sidebar="sidebarOpen = !sidebarOpen"
+        @navigate="handleNavigate"
+        @logout="handleLogout"
+      />
+
+      <!-- Content Area -->
+      <main class="flex-1 overflow-auto p-6">
+        <!-- Dashboard View -->
+        <div v-if="currentView === 'dashboard'" class="space-y-6">
+          <!-- Stats Cards -->
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <StatsCard
+              title="Total de Usuários"
+              :value="stats.users"
+              icon="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+              color="blue"
+            />
+            <StatsCard
+              title="Total de Imóveis"
+              :value="stats.properties"
+              icon="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+              color="green"
+            />
+            <StatsCard
+              title="Imóveis Alugados"
+              :value="stats.rented"
+              icon="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+              color="purple"
+            />
+            <StatsCard
+              title="Comunidades"
+              :value="stats.communities"
+              icon="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+              color="orange"
+            />
           </div>
-        </div>
-      </div>
-    </nav>
 
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <h1 class="text-3xl font-bold mb-8">Painel Administrativo</h1>
-
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div class="bg-white p-6 rounded-lg shadow-md">
-          <h3 class="text-gray-500 text-sm font-semibold mb-2">Total de Usuários</h3>
-          <div class="text-3xl font-bold text-blue-600">{{ stats.users }}</div>
-        </div>
-        <div class="bg-white p-6 rounded-lg shadow-md">
-          <h3 class="text-gray-500 text-sm font-semibold mb-2">Total de Imóveis</h3>
-          <div class="text-3xl font-bold text-green-600">{{ stats.properties }}</div>
-        </div>
-        <div class="bg-white p-6 rounded-lg shadow-md">
-          <h3 class="text-gray-500 text-sm font-semibold mb-2">Imóveis Alugados</h3>
-          <div class="text-3xl font-bold text-purple-600">{{ stats.rented }}</div>
-        </div>
-      </div>
-
-      <div class="bg-white rounded-lg shadow-md p-6 mb-8">
-        <h2 class="text-2xl font-bold mb-4">Usuários</h2>
-        <div class="overflow-x-auto">
-          <table class="min-w-full">
-            <thead>
-              <tr class="border-b">
-                <th class="text-left py-3 px-4">Nome</th>
-                <th class="text-left py-3 px-4">Email</th>
-                <th class="text-left py-3 px-4">Tipo</th>
-                <th class="text-left py-3 px-4">Telefone</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="user in users" :key="user.id" class="border-b hover:bg-gray-50">
-                <td class="py-3 px-4">{{ user.name }}</td>
-                <td class="py-3 px-4">{{ user.email }}</td>
-                <td class="py-3 px-4">
+          <!-- Recent Activity & Quick Actions -->
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Recent Users -->
+            <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <h3 class="text-lg font-bold text-gray-900 mb-4">Usuários Recentes</h3>
+              <div class="space-y-3">
+                <div
+                  v-for="user in recentUsers"
+                  :key="user.id"
+                  class="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg transition"
+                >
+                  <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold">
+                      {{ user.name[0].toUpperCase() }}
+                    </div>
+                    <div>
+                      <p class="font-semibold text-gray-900">{{ user.name }}</p>
+                      <p class="text-sm text-gray-500">{{ user.email }}</p>
+                    </div>
+                  </div>
                   <span
-                    class="px-2 py-1 rounded text-sm"
-                    :class="{
-                      'bg-red-100 text-red-800': user.role === 'admin',
-                      'bg-blue-100 text-blue-800': user.role === 'owner',
-                      'bg-green-100 text-green-800': user.role === 'tenant',
-                    }"
+                    :class="getRoleBadgeClass(user.role)"
+                    class="px-3 py-1 rounded-full text-xs font-semibold"
                   >
                     {{ getRoleLabel(user.role) }}
                   </span>
-                </td>
-                <td class="py-3 px-4">{{ user.phone || '-' }}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <div class="bg-white rounded-lg shadow-md p-6">
-        <h2 class="text-2xl font-bold mb-4">Todos os Imóveis</h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <div
-            v-for="property in properties"
-            :key="property.id"
-            class="border rounded-lg p-4 hover:shadow-md transition"
-          >
-            <h3 class="font-bold mb-2 truncate" :title="property.title">{{ property.title }}</h3>
-            <p class="text-sm text-gray-600 mb-2">{{ property.city }}</p>
-            <div class="text-lg font-bold text-blue-600 mb-2">
-              R$ {{ formatPrice(property.price) }}
+                </div>
+              </div>
             </div>
-            <div class="flex justify-between text-xs text-gray-500">
-              <span>Status: {{ property.status }}</span>
-              <span>{{ property.owner?.name }}</span>
+
+            <!-- Quick Actions -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <h3 class="text-lg font-bold text-gray-900 mb-4">Ações Rápidas</h3>
+              <div class="space-y-2">
+                <button
+                  @click="handleNavigate('owners')"
+                  class="w-full flex items-center space-x-3 px-4 py-3 bg-gradient-to-r from-blue-50 to-blue-100 hover:from-blue-100 hover:to-blue-200 rounded-lg transition text-left"
+                >
+                  <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                  </svg>
+                  <span class="text-sm font-medium text-blue-900">Gerenciar Proprietários</span>
+                </button>
+                <button
+                  @click="handleNavigate('tenants')"
+                  class="w-full flex items-center space-x-3 px-4 py-3 bg-gradient-to-r from-green-50 to-green-100 hover:from-green-100 hover:to-green-200 rounded-lg transition text-left"
+                >
+                  <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                  </svg>
+                  <span class="text-sm font-medium text-green-900">Gerenciar Inquilinos</span>
+                </button>
+                <button
+                  @click="handleNavigate('properties')"
+                  class="w-full flex items-center space-x-3 px-4 py-3 bg-gradient-to-r from-purple-50 to-purple-100 hover:from-purple-100 hover:to-purple-200 rounded-lg transition text-left"
+                >
+                  <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                  </svg>
+                  <span class="text-sm font-medium text-purple-900">Gerenciar Imóveis</span>
+                </button>
+                <button
+                  @click="handleNavigate('logs')"
+                  class="w-full flex items-center space-x-3 px-4 py-3 bg-gradient-to-r from-gray-50 to-gray-100 hover:from-gray-100 hover:to-gray-200 rounded-lg transition text-left"
+                >
+                  <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  <span class="text-sm font-medium text-gray-900">Ver Logs</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+
+        <!-- Owners View -->
+        <DataTable
+          v-if="currentView === 'owners'"
+          title="Proprietários"
+          subtitle="Gerencie todos os proprietários do sistema"
+          :columns="ownersColumns"
+          :data="owners"
+          :actions="tableActions"
+          :loading="loading"
+          @create="openCreateUserModal('owner')"
+          @edit="handleEditUser"
+          @delete="handleDeleteUser"
+        >
+          <template #cell-name="{ item }">
+            <div class="flex items-center space-x-3">
+              <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold">
+                {{ item.name[0].toUpperCase() }}
+              </div>
+              <div>
+                <p class="font-semibold text-gray-900">{{ item.name }}</p>
+                <p class="text-xs text-gray-500">{{ item.email }}</p>
+              </div>
+            </div>
+          </template>
+        </DataTable>
+
+        <!-- Tenants View -->
+        <DataTable
+          v-if="currentView === 'tenants'"
+          title="Inquilinos"
+          subtitle="Gerencie todos os inquilinos do sistema"
+          :columns="tenantsColumns"
+          :data="tenants"
+          :actions="tableActions"
+          :loading="loading"
+          @create="openCreateUserModal('tenant')"
+          @edit="handleEditUser"
+          @delete="handleDeleteUser"
+        >
+          <template #cell-name="{ item }">
+            <div class="flex items-center space-x-3">
+              <div class="w-10 h-10 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center text-white font-bold">
+                {{ item.name[0].toUpperCase() }}
+              </div>
+              <div>
+                <p class="font-semibold text-gray-900">{{ item.name }}</p>
+                <p class="text-xs text-gray-500">{{ item.email }}</p>
+              </div>
+            </div>
+          </template>
+        </DataTable>
+
+        <!-- Properties View -->
+        <DataTable
+          v-if="currentView === 'properties'"
+          title="Imóveis"
+          subtitle="Gerencie todos os imóveis do sistema"
+          :columns="propertiesColumns"
+          :data="properties"
+          :actions="propertyActions"
+          :loading="loading"
+          @view="viewProperty"
+          @edit="editProperty"
+          @delete="deleteProperty"
+        >
+          <template #cell-title="{ item }">
+            <div class="flex items-center space-x-3">
+              <div class="w-12 h-12 rounded-lg overflow-hidden bg-gray-200">
+                <img
+                  v-if="item.photos && item.photos[0]"
+                  :src="item.photos[0]"
+                  :alt="item.title"
+                  class="w-full h-full object-cover"
+                />
+                <div v-else class="w-full h-full flex items-center justify-center">
+                  <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                </div>
+              </div>
+              <div>
+                <p class="font-semibold text-gray-900 truncate max-w-xs">{{ item.title }}</p>
+                <p class="text-xs text-gray-500">{{ item.city }}, {{ item.state }}</p>
+              </div>
+            </div>
+          </template>
+          <template #cell-status="{ value }">
+            <span
+              :class="{
+                'bg-green-100 text-green-800': value === 'available',
+                'bg-purple-100 text-purple-800': value === 'rented',
+                'bg-yellow-100 text-yellow-800': value === 'maintenance'
+              }"
+              class="px-3 py-1 rounded-full text-xs font-semibold"
+            >
+              {{ getStatusLabel(value) }}
+            </span>
+          </template>
+        </DataTable>
+
+        <!-- Communities View -->
+        <DataTable
+          v-if="currentView === 'communities'"
+          title="Comunidades"
+          subtitle="Gerencie todas as comunidades do sistema"
+          :columns="communitiesColumns"
+          :data="communities"
+          :actions="tableActions"
+          :loading="loading"
+          @create="openCreateCommunityModal"
+          @edit="handleEditCommunity"
+          @delete="handleDeleteCommunity"
+        />
+
+        <!-- Logs View -->
+        <div v-if="currentView === 'logs'" class="space-y-6">
+          <DataTable
+            title="Logs de Visitantes"
+            subtitle="Acompanhe as visitas ao site"
+            :columns="visitorLogsColumns"
+            :data="visitorLogs"
+            :loading="loading"
+            :show-create-button="false"
+          />
+
+          <DataTable
+            title="Logs de Registro"
+            subtitle="Acompanhe os registros de novos usuários"
+            :columns="registrationLogsColumns"
+            :data="registrationLogs"
+            :loading="loading"
+            :show-create-button="false"
+          />
+        </div>
+
+        <!-- Settings View -->
+        <div v-if="currentView === 'settings'" class="max-w-4xl">
+          <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <h3 class="text-lg font-bold text-gray-900 mb-4">Configurações do Sistema</h3>
+            <p class="text-gray-500">Funcionalidade em desenvolvimento...</p>
+          </div>
+        </div>
+
+        <!-- Profile View -->
+        <div v-if="currentView === 'profile'" class="max-w-2xl">
+          <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <h3 class="text-lg font-bold text-gray-900 mb-6">Meu Perfil</h3>
+            <form @submit.prevent="updateProfile" class="space-y-4">
+              <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Nome</label>
+                <input
+                  v-model="profileForm.name"
+                  type="text"
+                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  required
+                />
+              </div>
+              <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Email</label>
+                <input
+                  v-model="profileForm.email"
+                  type="email"
+                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  required
+                />
+              </div>
+              <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Telefone</label>
+                <input
+                  v-model="profileForm.phone"
+                  type="tel"
+                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+              <div class="pt-4">
+                <button
+                  type="submit"
+                  class="px-6 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 transition font-medium"
+                >
+                  Salvar Alterações
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </main>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '../../stores/auth';
 import axios from 'axios';
+import Sidebar from '../../components/Admin/Sidebar.vue';
+import Header from '../../components/Admin/Header.vue';
+import DataTable from '../../components/Admin/DataTable.vue';
+
+// Components
+const StatsCard = {
+  props: ['title', 'value', 'icon', 'color'],
+  template: `
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm text-gray-600 mb-1">{{ title }}</p>
+          <p class="text-3xl font-bold text-gray-900">{{ value || 0 }}</p>
+        </div>
+        <div :class="'w-12 h-12 bg-gradient-to-br from-' + color + '-500 to-' + color + '-600 rounded-lg flex items-center justify-center'">
+          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" :d="icon" />
+          </svg>
+        </div>
+      </div>
+    </div>
+  `
+};
 
 const router = useRouter();
 const authStore = useAuthStore();
 
-const stats = ref({ users: 0, properties: 0, rented: 0 });
-const users = ref([]);
+const sidebarOpen = ref(false);
+const currentView = ref('dashboard');
+const loading = ref(false);
+const unreadNotifications = ref(0);
+
+// Data
+const stats = ref({
+  users: 0,
+  properties: 0,
+  rented: 0,
+  communities: 0
+});
+
+const owners = ref([]);
+const tenants = ref([]);
 const properties = ref([]);
+const communities = ref([]);
+const visitorLogs = ref([]);
+const registrationLogs = ref([]);
+const recentUsers = ref([]);
 
-const loadData = async () => {
+const profileForm = ref({
+  name: '',
+  email: '',
+  phone: ''
+});
+
+// Computed
+const pageTitle = computed(() => {
+  const titles = {
+    dashboard: 'Dashboard',
+    owners: 'Proprietários',
+    tenants: 'Inquilinos',
+    properties: 'Imóveis',
+    communities: 'Comunidades',
+    settings: 'Configurações',
+    profile: 'Meu Perfil',
+    logs: 'Logs do Sistema'
+  };
+  return titles[currentView.value] || 'Dashboard';
+});
+
+const pageSubtitle = computed(() => {
+  const subtitles = {
+    dashboard: 'Visão geral do sistema',
+    owners: 'Gerencie todos os proprietários',
+    tenants: 'Gerencie todos os inquilinos',
+    properties: 'Gerencie todos os imóveis',
+    communities: 'Gerencie as comunidades',
+    settings: 'Configure o sistema',
+    profile: 'Gerencie suas informações pessoais',
+    logs: 'Monitore as atividades do sistema'
+  };
+  return subtitles[currentView.value] || '';
+});
+
+// Table Columns
+const ownersColumns = [
+  { key: 'id', label: 'ID', cellClass: 'font-mono text-gray-500' },
+  { key: 'name', label: 'Nome' },
+  { key: 'phone', label: 'Telefone' },
+  {
+    key: 'created_at',
+    label: 'Cadastrado em',
+    format: (value) => new Date(value).toLocaleDateString('pt-BR')
+  }
+];
+
+const tenantsColumns = [...ownersColumns];
+
+const propertiesColumns = [
+  { key: 'id', label: 'ID', cellClass: 'font-mono text-gray-500' },
+  { key: 'title', label: 'Imóvel' },
+  {
+    key: 'price',
+    label: 'Preço',
+    format: (value) => `R$ ${new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2 }).format(value)}`
+  },
+  { key: 'status', label: 'Status' },
+  { key: 'owner.name', label: 'Proprietário' }
+];
+
+const communitiesColumns = [
+  { key: 'id', label: 'ID', cellClass: 'font-mono text-gray-500' },
+  { key: 'name', label: 'Nome', cellClass: 'font-semibold text-gray-900' },
+  { key: 'description', label: 'Descrição' }
+];
+
+const visitorLogsColumns = [
+  { key: 'id', label: 'ID', cellClass: 'font-mono text-gray-500' },
+  { key: 'ip_address', label: 'IP' },
+  { key: 'user_agent', label: 'Navegador' },
+  {
+    key: 'created_at',
+    label: 'Data',
+    format: (value) => new Date(value).toLocaleString('pt-BR')
+  }
+];
+
+const registrationLogsColumns = [
+  { key: 'id', label: 'ID', cellClass: 'font-mono text-gray-500' },
+  { key: 'user.name', label: 'Usuário' },
+  { key: 'user.email', label: 'Email' },
+  { key: 'user.role', label: 'Tipo', format: (value) => getRoleLabel(value) },
+  {
+    key: 'created_at',
+    label: 'Data',
+    format: (value) => new Date(value).toLocaleString('pt-BR')
+  }
+];
+
+// Table Actions
+const tableActions = [
+  {
+    name: 'edit',
+    label: 'Editar',
+    event: 'edit',
+    icon: 'M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z',
+    class: 'text-green-600 hover:bg-green-50'
+  },
+  {
+    name: 'delete',
+    label: 'Excluir',
+    event: 'delete',
+    icon: 'M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16',
+    class: 'text-red-600 hover:bg-red-50'
+  }
+];
+
+const propertyActions = [
+  {
+    name: 'view',
+    label: 'Visualizar',
+    event: 'view',
+    icon: 'M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z',
+    class: 'text-blue-600 hover:bg-blue-50'
+  },
+  ...tableActions
+];
+
+// Methods
+const handleNavigate = (view) => {
+  currentView.value = view;
+  sidebarOpen.value = false;
+  loadViewData();
+};
+
+const loadViewData = async () => {
+  loading.value = true;
   try {
-    const [usersRes, propertiesRes] = await Promise.all([
-      axios.get('/api/users'),
-      axios.get('/api/properties'),
-    ]);
-
-    users.value = usersRes.data.data || usersRes.data;
-    properties.value = propertiesRes.data.data || propertiesRes.data;
-
-    stats.value.users = users.value.length;
-    stats.value.properties = properties.value.length;
-    stats.value.rented = properties.value.filter((p) => p.status === 'rented').length;
+    switch (currentView.value) {
+      case 'dashboard':
+        await loadDashboardData();
+        break;
+      case 'owners':
+        await loadOwners();
+        break;
+      case 'tenants':
+        await loadTenants();
+        break;
+      case 'properties':
+        await loadProperties();
+        break;
+      case 'communities':
+        await loadCommunities();
+        break;
+      case 'logs':
+        await loadLogs();
+        break;
+    }
   } catch (error) {
     console.error('Erro ao carregar dados:', error);
+  } finally {
+    loading.value = false;
+  }
+};
+
+const loadDashboardData = async () => {
+  const [usersRes, propertiesRes, communitiesRes] = await Promise.all([
+    axios.get('/api/users'),
+    axios.get('/api/properties'),
+    axios.get('/api/communities')
+  ]);
+
+  const allUsers = usersRes.data.data || usersRes.data;
+  const allProperties = propertiesRes.data.data || propertiesRes.data;
+  const allCommunities = communitiesRes.data;
+
+  stats.value.users = allUsers.length;
+  stats.value.properties = allProperties.length;
+  stats.value.rented = allProperties.filter(p => p.status === 'rented').length;
+  stats.value.communities = allCommunities.length;
+
+  recentUsers.value = allUsers.slice(0, 5);
+};
+
+const loadOwners = async () => {
+  const response = await axios.get('/api/users');
+  const allUsers = response.data.data || response.data;
+  owners.value = allUsers.filter(u => u.role === 'owner');
+};
+
+const loadTenants = async () => {
+  const response = await axios.get('/api/users');
+  const allUsers = response.data.data || response.data;
+  tenants.value = allUsers.filter(u => u.role === 'tenant');
+};
+
+const loadProperties = async () => {
+  const response = await axios.get('/api/properties');
+  properties.value = response.data.data || response.data;
+};
+
+const loadCommunities = async () => {
+  const response = await axios.get('/api/communities');
+  communities.value = response.data;
+};
+
+const loadLogs = async () => {
+  try {
+    const [visitorsRes, registrationsRes] = await Promise.all([
+      axios.get('/api/admin/visitor-logs'),
+      axios.get('/api/admin/registration-logs')
+    ]);
+    visitorLogs.value = visitorsRes.data;
+    registrationLogs.value = registrationsRes.data;
+  } catch (error) {
+    console.error('Erro ao carregar logs:', error);
   }
 };
 
@@ -132,16 +585,27 @@ const getRoleLabel = (role) => {
   const labels = {
     admin: 'Administrador',
     owner: 'Proprietário',
-    tenant: 'Inquilino',
+    tenant: 'Inquilino'
   };
   return labels[role] || role;
 };
 
-const formatPrice = (price) => {
-  return new Intl.NumberFormat('pt-BR', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(price);
+const getRoleBadgeClass = (role) => {
+  const classes = {
+    admin: 'bg-red-100 text-red-800',
+    owner: 'bg-blue-100 text-blue-800',
+    tenant: 'bg-green-100 text-green-800'
+  };
+  return classes[role] || 'bg-gray-100 text-gray-800';
+};
+
+const getStatusLabel = (status) => {
+  const labels = {
+    available: 'Disponível',
+    rented: 'Alugado',
+    maintenance: 'Manutenção'
+  };
+  return labels[status] || status;
 };
 
 const handleLogout = async () => {
@@ -149,8 +613,85 @@ const handleLogout = async () => {
   router.push({ name: 'Home' });
 };
 
+const openCreateUserModal = (role) => {
+  alert(`Criar novo ${role === 'owner' ? 'proprietário' : 'inquilino'} - Em desenvolvimento`);
+};
+
+const openCreateCommunityModal = () => {
+  alert('Criar nova comunidade - Em desenvolvimento');
+};
+
+const handleEditUser = (user) => {
+  alert(`Editar usuário ${user.name} - Em desenvolvimento`);
+};
+
+const handleDeleteUser = async (user) => {
+  if (confirm(`Tem certeza que deseja excluir ${user.name}?`)) {
+    try {
+      await axios.delete(`/api/users/${user.id}`);
+      loadViewData();
+    } catch (error) {
+      console.error('Erro ao excluir usuário:', error);
+      alert('Erro ao excluir usuário');
+    }
+  }
+};
+
+const handleEditCommunity = (community) => {
+  alert(`Editar comunidade ${community.name} - Em desenvolvimento`);
+};
+
+const handleDeleteCommunity = async (community) => {
+  if (confirm(`Tem certeza que deseja excluir ${community.name}?`)) {
+    try {
+      await axios.delete(`/api/communities/${community.id}`);
+      loadViewData();
+    } catch (error) {
+      console.error('Erro ao excluir comunidade:', error);
+      alert('Erro ao excluir comunidade');
+    }
+  }
+};
+
+const viewProperty = (property) => {
+  router.push({ name: 'PropertyDetail', params: { id: property.id } });
+};
+
+const editProperty = (property) => {
+  alert(`Editar imóvel ${property.title} - Em desenvolvimento`);
+};
+
+const deleteProperty = async (property) => {
+  if (confirm(`Tem certeza que deseja excluir ${property.title}?`)) {
+    try {
+      await axios.delete(`/api/properties/${property.id}`);
+      loadViewData();
+    } catch (error) {
+      console.error('Erro ao excluir imóvel:', error);
+      alert('Erro ao excluir imóvel');
+    }
+  }
+};
+
+const updateProfile = async () => {
+  try {
+    await axios.put('/api/profile', profileForm.value);
+    const response = await axios.get('/api/me');
+    authStore.user = response.data;
+    alert('Perfil atualizado com sucesso!');
+  } catch (error) {
+    console.error('Erro ao atualizar perfil:', error);
+    alert('Erro ao atualizar perfil');
+  }
+};
+
 onMounted(async () => {
   await authStore.checkAuth();
-  loadData();
+  profileForm.value = {
+    name: authStore.user?.name || '',
+    email: authStore.user?.email || '',
+    phone: authStore.user?.phone || ''
+  };
+  loadViewData();
 });
 </script>
