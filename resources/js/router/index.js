@@ -30,8 +30,32 @@ const routes = [
     meta: { requiresAuth: true, role: 'admin' },
   },
   {
+    path: '/admin/inquilinos/criar',
+    name: 'AdminTenantCreate',
+    component: () => import('../views/Admin/Tenants.vue'),
+    meta: { requiresAuth: true, role: 'admin' },
+  },
+  {
+    path: '/admin/inquilinos/:id/editar',
+    name: 'AdminTenantEdit',
+    component: () => import('../views/Admin/Tenants.vue'),
+    meta: { requiresAuth: true, role: 'admin' },
+  },
+  {
     path: '/admin/proprietarios',
     name: 'AdminOwnerList',
+    component: () => import('../views/Admin/Owners.vue'),
+    meta: { requiresAuth: true, role: 'admin' },
+  },
+  {
+    path: '/admin/proprietarios/criar',
+    name: 'AdminOwnerCreate',
+    component: () => import('../views/Admin/Owners.vue'),
+    meta: { requiresAuth: true, role: 'admin' },
+  },
+  {
+    path: '/admin/proprietarios/:id/editar',
+    name: 'AdminOwnerEdit',
     component: () => import('../views/Admin/Owners.vue'),
     meta: { requiresAuth: true, role: 'admin' },
   },
