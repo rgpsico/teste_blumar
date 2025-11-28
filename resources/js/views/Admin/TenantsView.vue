@@ -1,36 +1,127 @@
 <template>
-  <DataTable
-    title="Inquilinos"
-    subtitle="Gerencie todos os inquilinos do sistema"
-    :columns="columns"
-    :data="tenants"
-    :actions="tableActions"
-    :loading="loading"
-    @create="openCreateUserModal"
-    @edit="handleEditUser"
-    @delete="handleDeleteUser"
-  >
-    <template #cell-name="{ item }">
-      <div class="flex items-center space-x-3">
-        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center text-white font-bold">
-          {{ item.name[0].toUpperCase() }}
+  <div class="space-y-6">
+    <DataTable
+      title="Inquilinos"
+      subtitle="Gerencie todos os inquilinos do sistema"
+      :columns="columns"
+      :data="tenants"
+      :actions="tableActions"
+      :loading="loading"
+      @create="openCreateUserModal"
+      @edit="handleEditUser"
+      @delete="handleDeleteUser"
+    >
+      <template #cell-name="{ item }">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center text-white font-bold">
+            {{ item.name?.[0]?.toUpperCase() || '?' }}
+          </div>
+          <div>
+            <p class="font-semibold text-gray-900">{{ item.name }}</p>
+            <p class="text-xs text-gray-500">{{ item.email }}</p>
+          </div>
         </div>
-        <div>
-          <p class="font-semibold text-gray-900">{{ item.name }}</p>
-          <p class="text-xs text-gray-500">{{ item.email }}</p>
+      </template>
+    </DataTable>
+
+    <Transition name="modal">
+      <div
+        v-if="showModal"
+        class="fixed inset-0 z-50 flex items-center justify-center px-4"
+        @click.self="closeModal"
+      >
+        <div class="absolute inset-0 bg-black bg-opacity-40"></div>
+        <div class="relative bg-white rounded-2xl shadow-xl max-w-2xl w-full p-6">
+          <div class="flex items-start justify-between mb-6">
+            <div>
+              <p class="text-sm text-gray-500">{{ isEditing ? 'Edite os dados do inquilino' : 'Cadastre um novo inquilino' }}</p>
+              <h3 class="text-2xl font-bold text-gray-900">{{ isEditing ? 'Editar inquilino' : 'Novo inquilino' }}</h3>
+            </div>
+            <button @click="closeModal" class="p-2 text-gray-500 hover:text-gray-700 rounded-lg hover:bg-gray-100">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          <form @submit.prevent="saveTenant" class="space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-1">Nome *</label>
+                <input
+                  v-model="form.name"
+                  required
+                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                />
+              </div>
+              <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-1">Email *</label>
+                <input
+                  v-model="form.email"
+                  type="email"
+                  required
+                  :disabled="isEditing"
+                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                />
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-1">Telefone</label>
+                <input
+                  v-model="form.phone"
+                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                />
+              </div>
+              <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-1">Senha {{ isEditing ? '(opcional)' : '*' }}</label>
+                <input
+                  v-model="form.password"
+                  type="password"
+                  :required="!isEditing"
+                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                />
+              </div>
+              <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-1">Confirmar senha {{ isEditing ? '(opcional)' : '*' }}</label>
+                <input
+                  v-model="form.password_confirmation"
+                  type="password"
+                  :required="!isEditing"
+                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                />
+              </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+              <input v-model="form.active" type="checkbox" class="w-4 h-4 text-emerald-600 rounded" />
+              <span class="text-sm text-gray-700">Inquilino ativo</span>
+            </div>
+
+            <div class="flex justify-end gap-3 pt-4">
+              <button type="button" @click="closeModal" class="px-5 py-2 border rounded-lg hover:bg-gray-50">
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                :disabled="saving"
+                class="px-6 py-2 bg-gradient-to-r from-emerald-600 to-green-600 text-white rounded-lg hover:shadow-lg disabled:opacity-60"
+              >
+                {{ saving ? 'Salvando...' : 'Salvar' }}
+              </button>
+            </div>
+          </form>
         </div>
       </div>
-    </template>
-  </DataTable>
+    </Transition>
+  </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
 import axios from 'axios';
 import DataTable from '../../components/Admin/DataTable.vue';
-
-const router = useRouter();
 
 const columns = [
   { key: 'id', label: 'ID', cellClass: 'font-mono text-gray-500' },
@@ -62,12 +153,43 @@ const tableActions = [
 
 const tenants = ref([]);
 const loading = ref(false);
+const saving = ref(false);
+const showModal = ref(false);
+const isEditing = ref(false);
+
+const form = ref({
+  id: null,
+  name: '',
+  email: '',
+  phone: '',
+  password: '',
+  password_confirmation: '',
+  role: 'tenant',
+  active: true
+});
+
+const resetForm = () => {
+  form.value = {
+    id: null,
+    name: '',
+    email: '',
+    phone: '',
+    password: '',
+    password_confirmation: '',
+    role: 'tenant',
+    active: true
+  };
+};
 
 const loadTenants = async () => {
   loading.value = true;
   try {
     const response = await axios.get('/api/users');
-    const allUsers = Array.isArray(response.data?.data) ? response.data.data : Array.isArray(response.data) ? response.data : [];
+    const allUsers = Array.isArray(response.data?.data)
+      ? response.data.data
+      : Array.isArray(response.data)
+        ? response.data
+        : [];
     tenants.value = allUsers.filter((u) => u && u.role === 'tenant');
   } finally {
     loading.value = false;
@@ -75,14 +197,24 @@ const loadTenants = async () => {
 };
 
 const openCreateUserModal = () => {
-  router.push({ name: 'AdminTenantList' });
-  setTimeout(() => {
-    router.push({ name: 'AdminTenantCreate' });
-  }, 100);
+  isEditing.value = false;
+  resetForm();
+  showModal.value = true;
 };
 
 const handleEditUser = (user) => {
-  router.push({ name: 'AdminTenantEdit', params: { id: user.id } });
+  isEditing.value = true;
+  form.value = {
+    id: user.id,
+    name: user.name || '',
+    email: user.email || '',
+    phone: user.phone || '',
+    password: '',
+    password_confirmation: '',
+    role: 'tenant',
+    active: user.active ?? true
+  };
+  showModal.value = true;
 };
 
 const handleDeleteUser = async (user) => {
@@ -97,7 +229,56 @@ const handleDeleteUser = async (user) => {
   }
 };
 
+const saveTenant = async () => {
+  saving.value = true;
+  try {
+    if (form.value.password || form.value.password_confirmation) {
+      if (form.value.password !== form.value.password_confirmation) {
+        alert('As senhas precisam coincidir.');
+        saving.value = false;
+        return;
+      }
+    }
+
+    if (isEditing.value) {
+      const payload = { ...form.value };
+      if (!payload.password) {
+        delete payload.password;
+        delete payload.password_confirmation;
+      }
+      // Email n�o editavel: evita enviar modifica��o se alterado no form
+      delete payload.email;
+      await axios.put(`/api/users/${form.value.id}`, payload);
+    } else {
+      await axios.post('/api/users', form.value);
+    }
+    closeModal();
+    loadTenants();
+  } catch (error) {
+    console.error('Erro ao salvar usuário:', error);
+    alert('Erro ao salvar usuário');
+  } finally {
+    saving.value = false;
+  }
+};
+
+const closeModal = () => {
+  showModal.value = false;
+};
+
 onMounted(() => {
   loadTenants();
 });
 </script>
+
+<style scoped>
+.modal-enter-active,
+.modal-leave-active {
+  transition: opacity 0.2s ease;
+}
+
+.modal-enter-from,
+.modal-leave-to {
+  opacity: 0;
+}
+</style>
