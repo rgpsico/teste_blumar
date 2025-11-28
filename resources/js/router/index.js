@@ -24,6 +24,24 @@ const routes = [
     meta: { requiresAuth: true, role: 'admin' },
   },
   {
+    path: '/admin/inquilinos',
+    name: 'AdminTenantList',
+    component: () => import('../views/Admin/Tenants.vue'),
+    meta: { requiresAuth: true, role: 'admin' },
+  },
+  {
+    path: '/admin/proprietarios',
+    name: 'AdminOwnerList',
+    component: () => import('../views/Admin/Owners.vue'),
+    meta: { requiresAuth: true, role: 'admin' },
+  },
+  {
+    path: '/admin/comunidades',
+    name: 'AdminCommunityList',
+    component: () => import('../views/Admin/Communities.vue'),
+    meta: { requiresAuth: true, role: 'admin' },
+  },
+  {
     path: '/owner',
     name: 'OwnerDashboard',
     component: () => import('../views/Owner/Dashboard.vue'),

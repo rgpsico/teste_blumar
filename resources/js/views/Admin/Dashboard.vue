@@ -750,15 +750,23 @@ const handleLogout = async () => {
 };
 
 const openCreateUserModal = (role) => {
-  alert(`Criar novo ${role === 'owner' ? 'proprietário' : 'inquilino'} - Em desenvolvimento`);
+  if (role === 'owner') {
+    router.push({ name: 'AdminOwnerCreate' });
+  } else {
+    router.push({ name: 'AdminTenantCreate' });
+  }
 };
 
 const openCreateCommunityModal = () => {
-  alert('Criar nova comunidade - Em desenvolvimento');
+  router.push({ name: 'AdminCommunityCreate' });
 };
 
 const handleEditUser = (user) => {
-  alert(`Editar usuário ${user.name} - Em desenvolvimento`);
+  if (user.role === 'owner') {
+    router.push({ name: 'AdminOwnerEdit', params: { id: user.id } });
+  } else if (user.role === 'tenant') {
+    router.push({ name: 'AdminTenantEdit', params: { id: user.id } });
+  }
 };
 
 const handleDeleteUser = async (user) => {
@@ -774,7 +782,7 @@ const handleDeleteUser = async (user) => {
 };
 
 const handleEditCommunity = (community) => {
-  alert(`Editar comunidade ${community.name} - Em desenvolvimento`);
+  router.push({ name: 'AdminCommunityEdit', params: { id: community.id } });
 };
 
 const handleDeleteCommunity = async (community) => {
