@@ -419,31 +419,39 @@ const loadProperties = async () => {
 const loadCommunities = async () => {
   try {
     const response = await axios.get('/api/communities');
-    communities.value = response.data;
+    // Verificar se a resposta é paginada ou array direto
+    if (response.data.data && Array.isArray(response.data.data)) {
+      communities.value = response.data.data;
+    } else if (Array.isArray(response.data)) {
+      communities.value = response.data;
+    } else {
+      communities.value = [];
+    }
   } catch (error) {
     console.error('Erro ao carregar comunidades:', error);
+    communities.value = [];
   }
 };
 
 const filteredProperties = computed(() => {
-  let result = properties.value;
+  let result = properties.value || [];
 
   // Filtro de busca por texto
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase();
     result = result.filter(
       (property) =>
-        property.title.toLowerCase().includes(query) ||
-        property.city.toLowerCase().includes(query) ||
-        property.state.toLowerCase().includes(query) ||
-        property.description.toLowerCase().includes(query) ||
-        property.address?.toLowerCase().includes(query)
+        property?.title?.toLowerCase().includes(query) ||
+        property?.city?.toLowerCase().includes(query) ||
+        property?.state?.toLowerCase().includes(query) ||
+        property?.description?.toLowerCase().includes(query) ||
+        property?.address?.toLowerCase().includes(query)
     );
   }
 
   // Filtro por comunidade
   if (filters.value.community_id) {
-    result = result.filter((property) => property.community_id === filters.value.community_id);
+    result = result.filter((property) => property?.community_id === filters.value.community_id);
   }
 
   // Filtro por preço mínimo
