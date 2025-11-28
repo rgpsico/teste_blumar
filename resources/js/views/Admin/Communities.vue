@@ -179,8 +179,24 @@
                 </div>
               </div>
               <div>
-                <label class="block text-sm font-medium mb-1">Imagem (URL)</label>
-                <input v-model="form.image" type="text" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500" />
+                <label class="block text-sm font-medium mb-1">Imagem (upload)</label>
+                <div class="flex items-center gap-4">
+                  <div class="flex-1">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      @change="handleImageUpload"
+                      class="block w-full text-sm text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100"
+                    />
+                  </div>
+                  <div
+                    v-if="imagePreview"
+                    class="w-20 h-20 rounded-xl overflow-hidden border border-purple-100 shadow-sm hover:shadow-md transition"
+                  >
+                    <img :src="imagePreview" alt="Pré-visualização" class="w-full h-full object-cover" />
+                  </div>
+                </div>
+                <p class="text-xs text-gray-500 mt-2">Formats: JPG, PNG ou WEBP. Tamanho máximo recomendado: 2MB.</p>
               </div>
               <div class="flex items-center">
                 <input v-model="form.active" type="checkbox" class="w-4 h-4 text-purple-600 rounded" />
@@ -224,6 +240,7 @@ const form = ref({
   image: '',
   active: true
 })
+const imagePreview = ref('')
 
 let searchTimeout = null
 
@@ -261,17 +278,31 @@ const changePage = (page) => {
 const openCreateModal = () => {
   isEditing.value = false
   form.value = { id: null, name: '', description: '', city: '', state: '', zip_code: '', image: '', active: true }
+  imagePreview.value = ''
   showModal.value = true
 }
 
 const openEditModal = (community) => {
   isEditing.value = true
   form.value = { ...community }
+  imagePreview.value = community.image ? `/storage/${community.image}` : ''
   showModal.value = true
 }
 
 const closeModal = () => {
   showModal.value = false
+}
+
+const handleImageUpload = (event) => {
+  const file = event.target.files?.[0]
+  if (!file) return
+
+  const reader = new FileReader()
+  reader.onload = (e) => {
+    form.value.image = e.target?.result
+    imagePreview.value = e.target?.result
+  }
+  reader.readAsDataURL(file)
 }
 
 const saveCommunity = async () => {
