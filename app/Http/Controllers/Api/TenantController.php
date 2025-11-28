@@ -16,26 +16,20 @@ class TenantController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Tenant::with(['user', 'property']);
+        $query = Tenant::with('property');
 
-        // Busca por nome, email ou documento do usuário vinculado
-        if ($request->has('search')) {
+        if ($request->filled('search')) {
             $search = $request->search;
-            $query->whereHas('user', function ($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
                     ->orWhere('email', 'like', "%{$search}%")
-                    ->orWhere('cpf', 'like', "%{$search}%");
+                    ->orWhere('document', 'like', "%{$search}%")
+                    ->orWhere('contact', 'like', "%{$search}%");
             });
         }
 
-        // Filtrar por propriedade
         if ($request->has('property_id')) {
             $query->where('property_id', $request->property_id);
-        }
-
-        // Filtrar por status de pagamento
-        if ($request->has('payment_status')) {
-            $query->where('payment_status', $request->payment_status);
         }
 
         $tenants = $query->orderBy('created_at', 'desc')
@@ -50,12 +44,13 @@ class TenantController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'user_id' => 'required|exists:users,id',
+            'name' => 'required|string|max:255',
+            'contact' => 'nullable|string|max:50',
+            'email' => 'nullable|email|max:255',
+            'document' => 'nullable|string|max:50',
             'property_id' => 'required|exists:properties,id',
             'start_date' => 'required|date',
-            'end_date' => 'nullable|date|after:start_date',
-            'rent_amount' => 'required|numeric|min:0',
-            'payment_status' => 'nullable|in:pending,paid,late',
+            'end_date' => 'nullable|date|after_or_equal:start_date',
             'notes' => 'nullable|string',
         ]);
 
@@ -66,8 +61,11 @@ class TenantController extends Controller
             ], 422);
         }
 
-        $tenant = Tenant::create($request->all());
-        $tenant->load(['user', 'property']);
+        $tenant = Tenant::create([
+            ...$request->only(['name', 'contact', 'email', 'document', 'property_id', 'start_date', 'end_date', 'notes']),
+            'user_id' => $request->user()->id,
+        ]);
+        $tenant->load('property');
 
         return response()->json([
             'message' => 'Inquilino criado com sucesso!',
@@ -105,12 +103,13 @@ class TenantController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'user_id' => 'required|exists:users,id',
+            'name' => 'required|string|max:255',
+            'contact' => 'nullable|string|max:50',
+            'email' => 'nullable|email|max:255',
+            'document' => 'nullable|string|max:50',
             'property_id' => 'required|exists:properties,id',
             'start_date' => 'required|date',
-            'end_date' => 'nullable|date|after:start_date',
-            'rent_amount' => 'required|numeric|min:0',
-            'payment_status' => 'nullable|in:pending,paid,late',
+            'end_date' => 'nullable|date|after_or_equal:start_date',
             'notes' => 'nullable|string',
         ]);
 
@@ -121,8 +120,8 @@ class TenantController extends Controller
             ], 422);
         }
 
-        $tenant->update($request->all());
-        $tenant->load(['user', 'property']);
+        $tenant->update($request->only(['name', 'contact', 'email', 'document', 'property_id', 'start_date', 'end_date', 'notes']));
+        $tenant->load('property');
 
         return response()->json([
             'message' => 'Inquilino atualizado com sucesso!',
