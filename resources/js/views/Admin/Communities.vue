@@ -1,223 +1,324 @@
 <template>
-  <div class="min-h-screen bg-gray-50 py-10">
-    <div class="max-w-6xl mx-auto px-4 space-y-6">
-      <header class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div>
-          <p class="text-sm text-gray-500">Painel do Super Admin</p>
-          <h1 class="text-2xl font-bold text-gray-900">Comunidades</h1>
-          <p class="text-sm text-gray-500">Gerencie comunidades e mantenha os dados sempre atualizados.</p>
+  <div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <!-- Header -->
+      <div class="mb-8">
+        <router-link to="/admin" class="inline-flex items-center text-sm text-gray-600 hover:text-blue-600 mb-4">
+          <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+          </svg>
+          Voltar ao Dashboard
+        </router-link>
+        <h1 class="text-3xl font-bold text-gray-900">Comunidades</h1>
+        <p class="mt-2 text-sm text-gray-600">Gerencie as comunidades cadastradas no sistema</p>
+      </div>
+
+      <!-- Search and Add -->
+      <div class="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div class="relative flex-1 max-w-md">
+          <input
+            v-model="searchQuery"
+            @input="handleSearch"
+            type="text"
+            placeholder="Buscar comunidades..."
+            class="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+          />
+          <svg class="absolute left-3 top-3 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
         </div>
-        <div class="flex flex-wrap gap-3">
-          <router-link
-            to="/admin"
-            class="inline-flex items-center px-4 py-2 bg-white border border-gray-200 rounded-lg text-gray-700 hover:text-blue-600 hover:border-blue-200 shadow-sm"
-          >
-            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-            </svg>
-            Voltar ao Dashboard
-          </router-link>
-          <button
-            @click="openCreateModal"
-            class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-600 text-white rounded-lg shadow-sm hover:shadow-md"
-          >
-            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-            </svg>
-            Nova Comunidade
-          </button>
-        </div>
-      </header>
+        <button
+          @click="openCreateModal"
+          class="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:shadow-lg transition"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+          </svg>
+          Nova Comunidade
+        </button>
+      </div>
 
-      <DataTable
-        title="Lista de Comunidades"
-        subtitle="Cadastre, edite ou remova comunidades"
-        :columns="columns"
-        :data="communities"
-        :actions="actions"
-        :loading="loading"
-        create-button-text="Adicionar Comunidade"
-        @create="openCreateModal"
-        @edit="openEditModal"
-        @delete="deleteCommunity"
-      />
-    </div>
-
-    <transition name="fade">
-      <div
-        v-if="showModal"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 px-4"
-        role="dialog"
-        aria-modal="true"
-      >
-        <div class="bg-white rounded-xl shadow-xl max-w-xl w-full p-6 space-y-4">
-          <header class="flex items-start justify-between">
-            <div>
-              <p class="text-sm text-gray-500">{{ isEditing ? 'Edite as informações da comunidade' : 'Cadastre uma nova comunidade' }}</p>
-              <h2 class="text-xl font-bold text-gray-900">{{ isEditing ? 'Editar Comunidade' : 'Nova Comunidade' }}</h2>
-            </div>
-            <button
-              type="button"
-              class="text-gray-400 hover:text-gray-600"
-              @click="closeModal"
-              aria-label="Fechar"
-            >
-              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </header>
-
-          <form class="space-y-4" @submit.prevent="submitForm">
-            <div>
-              <label class="block text-sm font-semibold text-gray-700 mb-2">Nome</label>
-              <input
-                v-model="form.name"
-                type="text"
-                required
-                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              />
-            </div>
-            <div>
-              <label class="block text-sm font-semibold text-gray-700 mb-2">Descrição</label>
-              <textarea
-                v-model="form.description"
-                rows="3"
-                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              ></textarea>
-            </div>
-
-            <div class="flex items-center justify-end gap-3 pt-2">
-              <button
-                type="button"
-                class="px-4 py-2 rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-50"
-                @click="closeModal"
-              >
-                Cancelar
-              </button>
-              <button
-                type="submit"
-                :disabled="submitting"
-                class="inline-flex items-center px-6 py-2 bg-gradient-to-r from-purple-500 to-pink-600 text-white rounded-lg hover:from-purple-600 hover:to-pink-700 transition disabled:opacity-60"
-              >
-                <svg v-if="submitting" class="animate-spin h-5 w-5 mr-2 text-white" fill="none" viewBox="0 0 24 24">
-                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
-                </svg>
-                <span>{{ isEditing ? 'Salvar Alterações' : 'Cadastrar' }}</span>
-              </button>
-            </div>
-          </form>
+      <!-- Cards Grid -->
+      <div v-if="loading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div v-for="i in 6" :key="i" class="bg-white rounded-xl shadow-sm overflow-hidden animate-pulse">
+          <div class="h-48 bg-gray-200"></div>
+          <div class="p-6 space-y-3">
+            <div class="h-4 bg-gray-200 rounded"></div>
+            <div class="h-4 bg-gray-200 rounded w-2/3"></div>
+          </div>
         </div>
       </div>
-    </transition>
+
+      <div v-else-if="communities.length === 0" class="text-center py-12">
+        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+        </svg>
+        <p class="mt-2 text-gray-500">Nenhuma comunidade encontrada</p>
+      </div>
+
+      <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div v-for="community in communities" :key="community.id" class="bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden group">
+          <!-- Image -->
+          <div class="relative h-48 bg-gradient-to-br from-purple-400 to-pink-400 overflow-hidden">
+            <img
+              v-if="community.image"
+              :src="`/storage/${community.image}`"
+              :alt="community.name"
+              class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+            />
+            <div v-else class="flex items-center justify-center h-full">
+              <svg class="w-20 h-20 text-white opacity-50" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
+              </svg>
+            </div>
+            <div class="absolute top-3 right-3">
+              <span v-if="community.active" class="px-3 py-1 bg-green-500 text-white text-xs font-semibold rounded-full">
+                Ativo
+              </span>
+              <span v-else class="px-3 py-1 bg-gray-500 text-white text-xs font-semibold rounded-full">
+                Inativo
+              </span>
+            </div>
+          </div>
+
+          <!-- Content -->
+          <div class="p-6">
+            <h3 class="text-xl font-bold text-gray-900 mb-2">{{ community.name }}</h3>
+            <p v-if="community.description" class="text-sm text-gray-600 mb-4 line-clamp-2">
+              {{ community.description }}
+            </p>
+            <div class="space-y-1 text-sm text-gray-500">
+              <div v-if="community.city" class="flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                {{ community.city }}<span v-if="community.state">, {{ community.state }}</span>
+              </div>
+              <div v-if="community.zip_code" class="flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+                CEP: {{ community.zip_code }}
+              </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="mt-6 flex gap-2">
+              <button
+                @click="openEditModal(community)"
+                class="flex-1 px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition font-medium"
+              >
+                Editar
+              </button>
+              <button
+                @click="deleteCommunity(community)"
+                class="px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pagination -->
+      <div v-if="pagination.last_page > 1" class="mt-8 flex justify-center">
+        <div class="flex gap-2">
+          <button
+            @click="changePage(pagination.current_page - 1)"
+            :disabled="pagination.current_page === 1"
+            class="px-4 py-2 border border-gray-300 rounded-lg disabled:opacity-50 hover:bg-gray-50"
+          >
+            Anterior
+          </button>
+          <span class="px-4 py-2">
+            Página {{ pagination.current_page }} de {{ pagination.last_page }}
+          </span>
+          <button
+            @click="changePage(pagination.current_page + 1)"
+            :disabled="pagination.current_page === pagination.last_page"
+            class="px-4 py-2 border border-gray-300 rounded-lg disabled:opacity-50 hover:bg-gray-50"
+          >
+            Próximo
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal (simplified for space) -->
+    <Transition name="modal">
+      <div v-if="showModal" class="fixed inset-0 z-50 overflow-y-auto" @click.self="closeModal">
+        <div class="flex items-center justify-center min-h-screen px-4">
+          <div @click="closeModal" class="fixed inset-0 bg-gray-900 bg-opacity-50"></div>
+          <div class="relative bg-white rounded-2xl max-w-2xl w-full p-6">
+            <h3 class="text-2xl font-bold mb-6">{{ isEditing ? 'Editar' : 'Nova' }} Comunidade</h3>
+            <form @submit.prevent="saveCommunity" class="space-y-4">
+              <div>
+                <label class="block text-sm font-medium mb-1">Nome *</label>
+                <input v-model="form.name" required class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500" />
+              </div>
+              <div>
+                <label class="block text-sm font-medium mb-1">Descrição</label>
+                <textarea v-model="form.description" rows="3" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500"></textarea>
+              </div>
+              <div class="grid grid-cols-3 gap-4">
+                <div>
+                  <label class="block text-sm font-medium mb-1">Cidade</label>
+                  <input v-model="form.city" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500" />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium mb-1">Estado</label>
+                  <input v-model="form.state" maxlength="2" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 uppercase" />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium mb-1">CEP</label>
+                  <input v-model="form.zip_code" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500" />
+                </div>
+              </div>
+              <div>
+                <label class="block text-sm font-medium mb-1">Imagem (URL)</label>
+                <input v-model="form.image" type="text" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500" />
+              </div>
+              <div class="flex items-center">
+                <input v-model="form.active" type="checkbox" class="w-4 h-4 text-purple-600 rounded" />
+                <label class="ml-2 text-sm">Comunidade ativa</label>
+              </div>
+              <div class="flex justify-end gap-3 pt-4">
+                <button type="button" @click="closeModal" class="px-6 py-2 border rounded-lg hover:bg-gray-50">
+                  Cancelar
+                </button>
+                <button type="submit" :disabled="saving" class="px-6 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:shadow-lg disabled:opacity-50">
+                  {{ saving ? 'Salvando...' : 'Salvar' }}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </Transition>
   </div>
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue';
-import axios from 'axios';
-import DataTable from '../../components/Admin/DataTable.vue';
+import { ref, onMounted } from 'vue'
+import axios from 'axios'
 
-const communities = ref([]);
-const loading = ref(false);
-const showModal = ref(false);
-const submitting = ref(false);
-const editingCommunityId = ref(null);
-const form = ref({ name: '', description: '' });
+const communities = ref([])
+const loading = ref(false)
+const searchQuery = ref('')
+const showModal = ref(false)
+const isEditing = ref(false)
+const saving = ref(false)
+const pagination = ref({ current_page: 1, last_page: 1 })
 
-const columns = [
-  { key: 'id', label: 'ID', cellClass: 'font-mono text-gray-500' },
-  { key: 'name', label: 'Nome', cellClass: 'font-semibold text-gray-900' },
-  { key: 'description', label: 'Descrição' }
-];
+const form = ref({
+  id: null,
+  name: '',
+  description: '',
+  city: '',
+  state: '',
+  zip_code: '',
+  image: '',
+  active: true
+})
 
-const actions = [
-  {
-    name: 'edit',
-    label: 'Editar',
-    event: 'edit',
-    icon: 'M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z',
-    class: 'text-purple-600 hover:bg-purple-50'
-  },
-  {
-    name: 'delete',
-    label: 'Excluir',
-    event: 'delete',
-    icon: 'M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16',
-    class: 'text-red-600 hover:bg-red-50'
-  }
-];
+let searchTimeout = null
 
-const isEditing = computed(() => Boolean(editingCommunityId.value));
+onMounted(() => {
+  fetchCommunities()
+})
 
-const resetForm = () => {
-  form.value = { name: '', description: '' };
-};
-
-const loadCommunities = async () => {
-  loading.value = true;
+const fetchCommunities = async (page = 1) => {
+  loading.value = true
   try {
-    const response = await axios.get('/api/communities');
-    communities.value = Array.isArray(response.data) ? response.data : response.data?.data || [];
+    const params = { page }
+    if (searchQuery.value) params.search = searchQuery.value
+    const response = await axios.get('/api/communities', { params })
+    communities.value = response.data.data
+    pagination.value = {
+      current_page: response.data.current_page,
+      last_page: response.data.last_page
+    }
   } catch (error) {
-    console.error('Erro ao carregar comunidades:', error);
-    communities.value = [];
+    console.error('Erro ao buscar comunidades:', error)
   } finally {
-    loading.value = false;
+    loading.value = false
   }
-};
+}
+
+const handleSearch = () => {
+  clearTimeout(searchTimeout)
+  searchTimeout = setTimeout(() => fetchCommunities(1), 500)
+}
+
+const changePage = (page) => {
+  fetchCommunities(page)
+}
 
 const openCreateModal = () => {
-  editingCommunityId.value = null;
-  resetForm();
-  showModal.value = true;
-};
+  isEditing.value = false
+  form.value = { id: null, name: '', description: '', city: '', state: '', zip_code: '', image: '', active: true }
+  showModal.value = true
+}
 
 const openEditModal = (community) => {
-  editingCommunityId.value = community.id;
-  form.value = {
-    name: community?.name || '',
-    description: community?.description || ''
-  };
-  showModal.value = true;
-};
+  isEditing.value = true
+  form.value = { ...community }
+  showModal.value = true
+}
 
 const closeModal = () => {
-  showModal.value = false;
-  resetForm();
-};
+  showModal.value = false
+}
 
-const submitForm = async () => {
-  submitting.value = true;
+const saveCommunity = async () => {
+  saving.value = true
   try {
     if (isEditing.value) {
-      await axios.put(`/api/communities/${editingCommunityId.value}`, form.value);
+      await axios.put(`/api/communities/${form.value.id}`, form.value)
     } else {
-      await axios.post('/api/communities', form.value);
+      await axios.post('/api/communities', form.value)
     }
-
-    await loadCommunities();
-    closeModal();
+    closeModal()
+    fetchCommunities(pagination.value.current_page)
   } catch (error) {
-    console.error('Erro ao salvar comunidade:', error);
-    alert('Não foi possível salvar as informações.');
+    console.error('Erro ao salvar:', error)
+    alert('Erro ao salvar comunidade')
   } finally {
-    submitting.value = false;
+    saving.value = false
   }
-};
+}
 
 const deleteCommunity = async (community) => {
-  if (confirm(`Deseja realmente excluir ${community.name}?`)) {
-    try {
-      await axios.delete(`/api/communities/${community.id}`);
-      await loadCommunities();
-    } catch (error) {
-      console.error('Erro ao excluir comunidade:', error);
-      alert('Não foi possível excluir a comunidade.');
-    }
+  if (!confirm(`Excluir ${community.name}?`)) return
+  try {
+    await axios.delete(`/api/communities/${community.id}`)
+    fetchCommunities(pagination.value.current_page)
+  } catch (error) {
+    console.error('Erro ao excluir:', error)
+    alert('Erro ao excluir comunidade')
   }
-};
-
-onMounted(loadCommunities);
+}
 </script>
+
+<style scoped>
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.modal-enter-active,
+.modal-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.modal-enter-from,
+.modal-leave-to {
+  opacity: 0;
+}
+</style>

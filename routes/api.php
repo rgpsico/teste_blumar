@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ChatController;
 use App\Http\Controllers\Api\CommunityController;
 use App\Http\Controllers\Api\ImageUploadController;
+use App\Http\Controllers\Api\OwnerController;
 use App\Http\Controllers\Api\PropertyController;
 use App\Http\Controllers\Api\PropertyMessageController;
 use App\Http\Controllers\Api\TenantController;
@@ -69,6 +70,15 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/admin/analytics', [AnalyticsController::class, 'getAdminAnalytics']);
     Route::get('/admin/visitor-logs', [AnalyticsController::class, 'getVisitorLogs']);
     Route::get('/admin/registration-logs', [AnalyticsController::class, 'getRegistrationLogs']);
+    Route::get('/admin/logs-dashboard', [AnalyticsController::class, 'getLogsDashboard']);
+
+    // Owners (Admin only)
+    Route::apiResource('owners', OwnerController::class);
+
+    // Communities (Admin CRUD)
+    Route::post('/communities', [CommunityController::class, 'store']);
+    Route::put('/communities/{id}', [CommunityController::class, 'update']);
+    Route::delete('/communities/{id}', [CommunityController::class, 'destroy']);
 
     // Users (Admin only)
     Route::middleware('can:admin')->group(function () {

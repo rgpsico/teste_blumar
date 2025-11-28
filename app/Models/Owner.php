@@ -2,30 +2,27 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Community extends Model
+class Owner extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'name',
-        'slug',
-        'description',
+        'phone',
+        'email',
+        'document',
+        'address',
         'city',
         'state',
         'zip_code',
-        'image',
-        'active',
     ];
 
-    protected $casts = [
-        'active' => 'boolean',
-    ];
-
-    public function users()
-    {
-        return $this->hasMany(User::class);
-    }
-
+    /**
+     * Relacionamento com propriedades (se necessário no futuro)
+     */
     public function properties()
     {
         return $this->hasMany(Property::class);
