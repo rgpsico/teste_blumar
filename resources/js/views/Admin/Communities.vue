@@ -255,6 +255,7 @@ const fetchCommunities = async (page = 1) => {
     if (searchQuery.value) params.search = searchQuery.value
     const response = await axios.get('/api/communities', { params })
     communities.value = response.data.data
+    console.log(communities.value)
     pagination.value = {
       current_page: response.data.current_page,
       last_page: response.data.last_page

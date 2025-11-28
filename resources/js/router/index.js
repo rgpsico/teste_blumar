@@ -95,16 +95,36 @@ const router = createRouter({
   routes,
 });
 
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore();
 
-  if (to.meta.requiresAuth && !authStore.isAuthenticated) {
-    next({ name: 'Login' });
-  } else if (to.meta.role && authStore.user?.role !== to.meta.role) {
-    next({ name: 'Home' });
-  } else {
-    next();
+  // Se requer autenticação, verifica se está autenticado
+  if (to.meta.requiresAuth) {
+    // Se não está autenticado, redireciona para login
+    if (!authStore.isAuthenticated) {
+      next({ name: 'Login' });
+      return;
+    }
+
+    // Se está autenticado mas não tem user, aguarda checkAuth
+    if (!authStore.user) {
+      await authStore.checkAuth();
+    }
+
+    // Após checkAuth, verifica se ainda está autenticado
+    if (!authStore.isAuthenticated) {
+      next({ name: 'Login' });
+      return;
+    }
+
+    // Verifica se o usuário tem a role necessária
+    if (to.meta.role && authStore.user?.role !== to.meta.role) {
+      next({ name: 'Home' });
+      return;
+    }
   }
+
+  next();
 });
 
 export default router;

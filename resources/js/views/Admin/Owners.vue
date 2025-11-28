@@ -31,7 +31,8 @@
           </svg>
         </div>
         <button
-          @click="openCreateModal"
+          type="button"
+          @click.prevent="openCreateModal"
           class="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:shadow-lg transition-all duration-200"
         >
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -88,13 +89,37 @@
                 <td class="px-6 py-4 whitespace-nowrap">
                   <div class="text-sm text-gray-500">{{ owner.city || '-' }}</div>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-3">
-                  <button @click="openEditModal(owner)" class="text-blue-600 hover:text-blue-900">
-                    Editar
-                  </button>
-                  <button @click="deleteOwner(owner)" class="text-red-600 hover:text-red-900">
-                    Excluir
-                  </button>
+                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                  <div class="flex items-center justify-end gap-2">
+                    <button
+                      @click="openViewModal(owner)"
+                      class="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+                      title="Ver detalhes"
+                    >
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      </svg>
+                    </button>
+                    <button
+                      @click="openEditModal(owner)"
+                      class="p-2 text-gray-600 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all"
+                      title="Editar"
+                    >
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                    </button>
+                    <button
+                      @click="deleteOwner(owner)"
+                      class="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                      title="Excluir"
+                    >
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                  </div>
                 </td>
               </tr>
             </tbody>
@@ -133,14 +158,14 @@
       <div v-if="showModal" class="fixed inset-0 z-50 overflow-y-auto" @click.self="closeModal">
         <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
           <!-- Background overlay -->
-          <div @click="closeModal" class="fixed inset-0 bg-gray-900 bg-opacity-50 transition-opacity"></div>
+          <div @click="closeModal" class="fixed inset-0 bg-gray-900 bg-opacity-30 transition-opacity"></div>
 
           <!-- Modal panel -->
           <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full">
             <div class="bg-white px-6 pt-6 pb-4">
               <div class="flex items-center justify-between mb-6">
                 <h3 class="text-2xl font-bold text-gray-900">
-                  {{ isEditing ? 'Editar Proprietário' : 'Novo Proprietário' }}
+                  {{ isViewing ? 'Detalhes do Proprietário' : isEditing ? 'Editar Proprietário' : 'Novo Proprietário' }}
                 </h3>
                 <button @click="closeModal" class="text-gray-400 hover:text-gray-600 transition-colors">
                   <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -149,7 +174,70 @@
                 </button>
               </div>
 
-              <form @submit.prevent="saveOwner" class="space-y-4">
+              <!-- View Mode -->
+              <div v-if="isViewing" class="space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div class="md:col-span-2">
+                    <label class="block text-sm font-semibold text-gray-600 mb-2">Nome</label>
+                    <p class="text-base text-gray-900">{{ form.name }}</p>
+                  </div>
+
+                  <div>
+                    <label class="block text-sm font-semibold text-gray-600 mb-2">Email</label>
+                    <p class="text-base text-gray-900">{{ form.email }}</p>
+                  </div>
+
+                  <div>
+                    <label class="block text-sm font-semibold text-gray-600 mb-2">Telefone</label>
+                    <p class="text-base text-gray-900">{{ form.phone || '-' }}</p>
+                  </div>
+
+                  <div>
+                    <label class="block text-sm font-semibold text-gray-600 mb-2">Documento (CPF/CNPJ)</label>
+                    <p class="text-base text-gray-900">{{ form.document }}</p>
+                  </div>
+
+                  <div>
+                    <label class="block text-sm font-semibold text-gray-600 mb-2">CEP</label>
+                    <p class="text-base text-gray-900">{{ form.zip_code || '-' }}</p>
+                  </div>
+
+                  <div class="md:col-span-2">
+                    <label class="block text-sm font-semibold text-gray-600 mb-2">Endereço</label>
+                    <p class="text-base text-gray-900">{{ form.address || '-' }}</p>
+                  </div>
+
+                  <div>
+                    <label class="block text-sm font-semibold text-gray-600 mb-2">Cidade</label>
+                    <p class="text-base text-gray-900">{{ form.city || '-' }}</p>
+                  </div>
+
+                  <div>
+                    <label class="block text-sm font-semibold text-gray-600 mb-2">Estado</label>
+                    <p class="text-base text-gray-900">{{ form.state || '-' }}</p>
+                  </div>
+                </div>
+
+                <div class="flex justify-end gap-3 pt-4 border-t">
+                  <button
+                    type="button"
+                    @click="closeModal"
+                    class="px-6 py-2.5 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                  >
+                    Fechar
+                  </button>
+                  <button
+                    type="button"
+                    @click="switchToEditMode"
+                    class="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:shadow-lg transition-all"
+                  >
+                    Editar
+                  </button>
+                </div>
+              </div>
+
+              <!-- Edit/Create Mode -->
+              <form v-else @submit.prevent="saveOwner" class="space-y-4">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div class="md:col-span-2">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Nome *</label>
@@ -271,6 +359,7 @@ const loading = ref(false)
 const searchQuery = ref('')
 const showModal = ref(false)
 const isEditing = ref(false)
+const isViewing = ref(false)
 const saving = ref(false)
 const pagination = ref({
   current_page: 1,
@@ -344,7 +433,9 @@ const changePage = (page) => {
 }
 
 const openCreateModal = () => {
+  console.log('openCreateModal called')
   isEditing.value = false
+  isViewing.value = false
   form.value = {
     id: null,
     name: '',
@@ -357,12 +448,26 @@ const openCreateModal = () => {
     zip_code: ''
   }
   showModal.value = true
+  console.log('Modal should be open:', showModal.value)
+}
+
+const openViewModal = (owner) => {
+  isEditing.value = false
+  isViewing.value = true
+  form.value = { ...owner }
+  showModal.value = true
 }
 
 const openEditModal = (owner) => {
   isEditing.value = true
+  isViewing.value = false
   form.value = { ...owner }
   showModal.value = true
+}
+
+const switchToEditMode = () => {
+  isViewing.value = false
+  isEditing.value = true
 }
 
 const loadOwnerForEdit = async (ownerId) => {
@@ -380,6 +485,7 @@ const loadOwnerForEdit = async (ownerId) => {
 }
 
 const closeModal = () => {
+  console.log('closeModal called from route:', route.name)
   showModal.value = false
   if (route.name !== 'AdminOwnerList') {
     router.replace({ name: 'AdminOwnerList' })
@@ -420,6 +526,7 @@ const deleteOwner = async (owner) => {
 }
 
 const initializeFromRoute = () => {
+  console.log('initializeFromRoute called, route:', route.name)
   if (route.name === 'AdminOwnerCreate') {
     openCreateModal()
   }

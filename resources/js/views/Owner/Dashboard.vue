@@ -1,5 +1,14 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex">
+  <!-- Loading State -->
+  <div v-if="isLoading" class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
+    <div class="text-center">
+      <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent mb-4"></div>
+      <p class="text-gray-600 text-lg">Carregando...</p>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div v-else class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex">
     <!-- Sidebar -->
     <aside class="w-64 bg-gradient-to-b from-blue-600 to-purple-700 text-white flex-shrink-0 hidden lg:block">
       <div class="p-6">
@@ -373,7 +382,7 @@
                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required
                 >
-                  <option v-for="community in communities" :key="community.id" :value="community.id">
+                  <option v-for="community in communities.filter(c => c && c.id)" :key="community.id" :value="community.id">
                     {{ community.name }}
                   </option>
                 </select>
@@ -429,7 +438,7 @@
     <!-- Modal Bots/FAQs -->
     <div
       v-if="showFaqModal"
-      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+      class="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center p-4 z-50"
       @click.self="closeFaqModal"
     >
       <div class="bg-white rounded-lg overflow-hidden max-w-3xl w-full max-h-[90vh] shadow-2xl">
@@ -439,7 +448,7 @@
             <div>
               <h2 class="text-2xl font-bold">Treinar Bot</h2>
               <p class="text-sm text-purple-100 mt-1">Configure respostas automáticas para este imóvel</p>
-              <p v-if="selectedPropertyForFaqs" class="text-xs text-purple-200 mt-1 font-medium">
+              <p v-if="selectedPropertyForFaqs && selectedPropertyForFaqs.title" class="text-xs text-purple-200 mt-1 font-medium">
                 📍 {{ selectedPropertyForFaqs.title }}
               </p>
             </div>
@@ -530,7 +539,7 @@
     <!-- Modal Adicionar/Editar -->
     <div
       v-if="showModal"
-      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+      class="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center p-4 z-50"
       @click.self="closeModal"
     >
       <div class="bg-white rounded-lg p-6 max-w-3xl w-full max-h-[90vh] overflow-y-auto">
@@ -599,8 +608,8 @@
                 v-model.number="propertyForm.community_id"
                 class="w-full px-3 py-2 border rounded-md"
               >
-                <option :value="null">Usar minha comunidade ({{ authStore.user?.community?.name || 'Padrão' }})</option>
-                <option v-for="community in communities" :key="community.id" :value="community.id">
+                <option :value="null">Usar minha comunidade ({{ (authStore.user && authStore.user.community) ? authStore.user.community.name : 'Padrão' }})</option>
+                <option v-for="community in communities.filter(c => c && c.id)" :key="community.id" :value="community.id">
                   {{ community.name }}
                 </option>
               </select>
@@ -775,6 +784,7 @@ import axios from 'axios';
 const router = useRouter();
 const authStore = useAuthStore();
 
+const isLoading = ref(true);
 const currentView = ref('properties');
 const properties = ref([]);
 const communities = ref([]);
@@ -845,20 +855,25 @@ const loadProperties = async () => {
 const loadCommunities = async () => {
   try {
     const response = await axios.get('/api/communities');
-    communities.value = response.data;
+    // Filtra valores nulos ou inválidos
+    communities.value = Array.isArray(response.data)
+      ? response.data.filter(c => c && c.id)
+      : [];
   } catch (error) {
     console.error('Erro ao carregar comunidades:', error);
+    communities.value = [];
   }
 };
 
 const openFaqModal = (property) => {
   // Evita erros quando o imóvel não está carregado corretamente
   if (!property || !property.id) {
+    console.error('Imóvel inválido ou sem ID:', property);
     alert('Não foi possível carregar os dados do imóvel. Tente atualizar a página.');
     return;
   }
 
-  selectedPropertyForFaqs.value = property;
+  selectedPropertyForFaqs.value = { ...property };
   faqForm.value = { question: '', answer: '' };
   showFaqModal.value = true;
   loadFaqs(property.id);
@@ -890,7 +905,10 @@ const loadFaqs = async (propertyId) => {
 };
 
 const saveFaq = async () => {
-  if (!selectedPropertyForFaqs.value) return;
+  if (!selectedPropertyForFaqs.value || !selectedPropertyForFaqs.value.id) {
+    alert('Imóvel não selecionado corretamente.');
+    return;
+  }
 
   savingFaq.value = true;
   try {
@@ -906,7 +924,12 @@ const saveFaq = async () => {
 };
 
 const deleteFaq = async (faqId) => {
-  if (!selectedPropertyForFaqs.value || !confirm('Excluir esta resposta?')) {
+  if (!selectedPropertyForFaqs.value || !selectedPropertyForFaqs.value.id) {
+    alert('Imóvel não selecionado corretamente.');
+    return;
+  }
+
+  if (!confirm('Excluir esta resposta?')) {
     return;
   }
 
@@ -923,6 +946,13 @@ const deleteFaq = async (faqId) => {
 };
 
 const openAddModal = () => {
+  // Verifica se o usuário está autenticado
+  if (!authStore.user) {
+    console.error('Tentativa de abrir modal sem usuário autenticado');
+    router.push({ name: 'Login' });
+    return;
+  }
+
   isEditing.value = false;
   editingId.value = null;
   propertyForm.value = {
@@ -932,7 +962,7 @@ const openAddModal = () => {
     city: '',
     state: '',
     zip_code: '',
-    community_id: authStore.user?.community_id || '',
+    community_id: authStore.user.community_id || null,
     price: '',
     bedrooms: '',
     bathrooms: '',
@@ -959,7 +989,7 @@ const openEditModal = (property) => {
     city: property.city,
     state: property.state,
     zip_code: property.zip_code,
-    community_id: property.community_id || authStore.user?.community_id || '',
+    community_id: property.community_id || ((authStore.user && authStore.user.community_id) ? authStore.user.community_id : null),
     price: property.price,
     bedrooms: property.bedrooms,
     bathrooms: property.bathrooms,
@@ -1082,11 +1112,15 @@ const viewProperty = (property) => {
 };
 
 const loadProfileData = () => {
+  if (!authStore.user) {
+    return;
+  }
+
   profileForm.value = {
-    name: authStore.user?.name || '',
-    email: authStore.user?.email || '',
-    phone: authStore.user?.phone || '',
-    community_id: authStore.user?.community_id || '',
+    name: authStore.user.name || '',
+    email: authStore.user.email || '',
+    phone: authStore.user.phone || '',
+    community_id: authStore.user.community_id || '',
     password: '',
     password_confirmation: '',
   };
@@ -1131,10 +1165,26 @@ const handleLogout = async () => {
 };
 
 onMounted(async () => {
-  await authStore.checkAuth();
-  loadProperties();
-  loadCommunities();
-  loadProfileData();
+  try {
+    await authStore.checkAuth();
+
+    if (!authStore.user) {
+      router.push({ name: 'Login' });
+      return;
+    }
+
+    await Promise.all([
+      loadProperties(),
+      loadCommunities(),
+    ]);
+
+    loadProfileData();
+  } catch (error) {
+    console.error('Erro ao inicializar dashboard:', error);
+    router.push({ name: 'Login' });
+  } finally {
+    isLoading.value = false;
+  }
 });
 </script>
 

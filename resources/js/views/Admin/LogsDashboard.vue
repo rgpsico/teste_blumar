@@ -217,10 +217,11 @@ const chartOptions = {
   }
 }
 
+alert("aa")
 onMounted(() => {
   fetchDashboard()
 })
-
+alert("aa")
 const fetchDashboard = async () => {
   loading.value = true
   try {

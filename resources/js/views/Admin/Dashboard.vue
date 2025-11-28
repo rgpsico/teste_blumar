@@ -750,10 +750,18 @@ const handleLogout = async () => {
 };
 
 const openCreateUserModal = (role) => {
+  // Navegar para a página específica de owners ou tenants onde o modal será aberto
   if (role === 'owner') {
-    router.push({ name: 'AdminOwnerCreate' });
+    router.push({ name: 'AdminOwnerList' });
+    // O modal será aberto pela rota AdminOwnerCreate se necessário
+    setTimeout(() => {
+      router.push({ name: 'AdminOwnerCreate' });
+    }, 100);
   } else {
-    router.push({ name: 'AdminTenantCreate' });
+    router.push({ name: 'AdminTenantList' });
+    setTimeout(() => {
+      router.push({ name: 'AdminTenantCreate' });
+    }, 100);
   }
 };
 

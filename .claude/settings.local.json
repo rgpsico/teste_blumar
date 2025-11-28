@@ -9,7 +9,16 @@
       "Bash(test:*)",
       "Bash(/c/Program Files/nodejs/npm.cmd run build)",
       "Bash(c:laragonbinphpphp-8.3.11-Win32-vs16-x64php.exe artisan migrate:status:*)",
-      "Bash(/c/laragon/bin/php/php-8.3.11-Win32-vs16-x64/php.exe artisan:*)"
+      "Bash(/c/laragon/bin/php/php-8.3.11-Win32-vs16-x64/php.exe artisan:*)",
+      "Bash(where npm:*)",
+      "Bash(dir:*)",
+      "Bash(dir \"c:\\Program Files (x86)\\nodejs\")",
+      "Bash(where npm.cmd:*)",
+      "Bash(/c/laragon/bin/nodejs/node-v22/npm.cmd run build)",
+      "Bash(PATH=\"/c/laragon/bin/nodejs/node-v22:$PATH\" /c/laragon/bin/nodejs/node-v22/npm.cmd run build:*)",
+      "Bash(/c/laragon/bin/php/php-8.3.16-Win32-vs16-x64/php.exe artisan migrate:status)",
+      "Bash(/c/laragon/bin/php/php-8.3.16-Win32-vs16-x64/php.exe artisan migrate:*)",
+      "Bash(curl:*)"
     ],
     "deny": [],
     "ask": []
