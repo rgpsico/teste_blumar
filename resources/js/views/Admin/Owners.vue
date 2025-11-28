@@ -262,7 +262,8 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import axios from 'axios'
 
 const owners = ref([])
@@ -293,9 +294,20 @@ const form = ref({
 
 let searchTimeout = null
 
+const route = useRoute()
+const router = useRouter()
+
 onMounted(() => {
   fetchOwners()
+  initializeFromRoute()
 })
+
+watch(
+  () => route.fullPath,
+  () => {
+    initializeFromRoute()
+  }
+)
 
 const fetchOwners = async (page = 1) => {
   loading.value = true
@@ -353,8 +365,25 @@ const openEditModal = (owner) => {
   showModal.value = true
 }
 
+const loadOwnerForEdit = async (ownerId) => {
+  try {
+    loading.value = true
+    const response = await axios.get(`/api/owners/${ownerId}`)
+    openEditModal(response.data)
+  } catch (error) {
+    console.error('Erro ao carregar proprietário para edição:', error)
+    alert('Não foi possível carregar os dados do proprietário')
+    router.replace({ name: 'AdminOwnerList' })
+  } finally {
+    loading.value = false
+  }
+}
+
 const closeModal = () => {
   showModal.value = false
+  if (route.name !== 'AdminOwnerList') {
+    router.replace({ name: 'AdminOwnerList' })
+  }
 }
 
 const saveOwner = async () => {
@@ -387,6 +416,16 @@ const deleteOwner = async (owner) => {
   } catch (error) {
     console.error('Erro ao excluir proprietário:', error)
     alert('Erro ao excluir proprietário')
+  }
+}
+
+const initializeFromRoute = () => {
+  if (route.name === 'AdminOwnerCreate') {
+    openCreateModal()
+  }
+
+  if (route.name === 'AdminOwnerEdit' && route.params.id) {
+    loadOwnerForEdit(route.params.id)
   }
 }
 </script>

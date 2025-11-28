@@ -233,7 +233,8 @@
 </template>
 
 <script setup>
-import { onMounted, reactive, ref, computed } from 'vue'
+import { onMounted, reactive, ref, computed, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import axios from 'axios'
 
 const debounce = (fn, delay = 300) => {
@@ -250,6 +251,9 @@ const loading = ref(false)
 const saving = ref(false)
 const showModal = ref(false)
 const editingTenant = ref(null)
+
+const route = useRoute()
+const router = useRouter()
 
 const form = reactive({
   name: '',
@@ -310,9 +314,26 @@ const openEditModal = (tenant) => {
   showModal.value = true
 }
 
+const loadTenantForEdit = async (tenantId) => {
+  try {
+    loading.value = true
+    const { data } = await axios.get(`/api/tenants/${tenantId}`)
+    openEditModal(data)
+  } catch (error) {
+    console.error('Erro ao carregar inquilino para edição', error)
+    alert('Não foi possível carregar os dados do inquilino.')
+    router.replace({ name: 'AdminTenantList' })
+  } finally {
+    loading.value = false
+  }
+}
+
 const closeModal = () => {
   showModal.value = false
   resetForm()
+  if (route.name !== 'AdminTenantList') {
+    router.replace({ name: 'AdminTenantList' })
+  }
 }
 
 const fetchProperties = async () => {
@@ -385,8 +406,26 @@ const deleteTenant = async (tenant) => {
   }
 }
 
+const initializeFromRoute = () => {
+  if (route.name === 'AdminTenantCreate') {
+    openCreateModal()
+  }
+
+  if (route.name === 'AdminTenantEdit' && route.params.id) {
+    loadTenantForEdit(route.params.id)
+  }
+}
+
+watch(
+  () => route.fullPath,
+  () => {
+    initializeFromRoute()
+  }
+)
+
 onMounted(async () => {
   await Promise.all([fetchProperties(), fetchTenants()])
+  initializeFromRoute()
 })
 </script>
 
