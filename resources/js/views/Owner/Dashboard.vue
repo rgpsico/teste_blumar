@@ -156,7 +156,8 @@
             <div class="p-6 border-b border-gray-200 flex items-center justify-between">
               <h2 class="text-xl font-bold text-gray-800">Lista de Imóveis</h2>
               <button
-                @click="openAddModal"
+                type="button"
+                @click.stop="openAddModal"
                 class="flex items-center space-x-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-2 rounded-lg hover:from-blue-600 hover:to-blue-700 transition"
               >
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -287,7 +288,8 @@
               </svg>
               <p class="text-gray-500 mb-4">Nenhum imóvel cadastrado</p>
               <button
-                @click="openAddModal"
+                type="button"
+                @click.stop="openAddModal"
                 class="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition"
               >
                 Adicionar Primeiro Imóvel
