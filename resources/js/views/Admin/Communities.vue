@@ -18,7 +18,7 @@
             Voltar ao Dashboard
           </router-link>
           <button
-            @click="goToCreate"
+            @click="openCreateModal"
             class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-600 text-white rounded-lg shadow-sm hover:shadow-md"
           >
             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -37,23 +37,94 @@
         :actions="actions"
         :loading="loading"
         create-button-text="Adicionar Comunidade"
-        @create="goToCreate"
-        @edit="editCommunity"
+        @create="openCreateModal"
+        @edit="openEditModal"
         @delete="deleteCommunity"
       />
     </div>
+
+    <transition name="fade">
+      <div
+        v-if="showModal"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 px-4"
+        role="dialog"
+        aria-modal="true"
+      >
+        <div class="bg-white rounded-xl shadow-xl max-w-xl w-full p-6 space-y-4">
+          <header class="flex items-start justify-between">
+            <div>
+              <p class="text-sm text-gray-500">{{ isEditing ? 'Edite as informações da comunidade' : 'Cadastre uma nova comunidade' }}</p>
+              <h2 class="text-xl font-bold text-gray-900">{{ isEditing ? 'Editar Comunidade' : 'Nova Comunidade' }}</h2>
+            </div>
+            <button
+              type="button"
+              class="text-gray-400 hover:text-gray-600"
+              @click="closeModal"
+              aria-label="Fechar"
+            >
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </header>
+
+          <form class="space-y-4" @submit.prevent="submitForm">
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-2">Nome</label>
+              <input
+                v-model="form.name"
+                type="text"
+                required
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-2">Descrição</label>
+              <textarea
+                v-model="form.description"
+                rows="3"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              ></textarea>
+            </div>
+
+            <div class="flex items-center justify-end gap-3 pt-2">
+              <button
+                type="button"
+                class="px-4 py-2 rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-50"
+                @click="closeModal"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                :disabled="submitting"
+                class="inline-flex items-center px-6 py-2 bg-gradient-to-r from-purple-500 to-pink-600 text-white rounded-lg hover:from-purple-600 hover:to-pink-700 transition disabled:opacity-60"
+              >
+                <svg v-if="submitting" class="animate-spin h-5 w-5 mr-2 text-white" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                </svg>
+                <span>{{ isEditing ? 'Salvar Alterações' : 'Cadastrar' }}</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </transition>
   </div>
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue';
-import { useRouter } from 'vue-router';
+import { computed, onMounted, ref } from 'vue';
 import axios from 'axios';
 import DataTable from '../../components/Admin/DataTable.vue';
 
-const router = useRouter();
 const communities = ref([]);
 const loading = ref(false);
+const showModal = ref(false);
+const submitting = ref(false);
+const editingCommunityId = ref(null);
+const form = ref({ name: '', description: '' });
 
 const columns = [
   { key: 'id', label: 'ID', cellClass: 'font-mono text-gray-500' },
@@ -78,6 +149,12 @@ const actions = [
   }
 ];
 
+const isEditing = computed(() => Boolean(editingCommunityId.value));
+
+const resetForm = () => {
+  form.value = { name: '', description: '' };
+};
+
 const loadCommunities = async () => {
   loading.value = true;
   try {
@@ -91,12 +168,43 @@ const loadCommunities = async () => {
   }
 };
 
-const goToCreate = () => {
-  router.push({ name: 'AdminCommunityCreate' });
+const openCreateModal = () => {
+  editingCommunityId.value = null;
+  resetForm();
+  showModal.value = true;
 };
 
-const editCommunity = (community) => {
-  router.push({ name: 'AdminCommunityEdit', params: { id: community.id } });
+const openEditModal = (community) => {
+  editingCommunityId.value = community.id;
+  form.value = {
+    name: community?.name || '',
+    description: community?.description || ''
+  };
+  showModal.value = true;
+};
+
+const closeModal = () => {
+  showModal.value = false;
+  resetForm();
+};
+
+const submitForm = async () => {
+  submitting.value = true;
+  try {
+    if (isEditing.value) {
+      await axios.put(`/api/communities/${editingCommunityId.value}`, form.value);
+    } else {
+      await axios.post('/api/communities', form.value);
+    }
+
+    await loadCommunities();
+    closeModal();
+  } catch (error) {
+    console.error('Erro ao salvar comunidade:', error);
+    alert('Não foi possível salvar as informações.');
+  } finally {
+    submitting.value = false;
+  }
 };
 
 const deleteCommunity = async (community) => {

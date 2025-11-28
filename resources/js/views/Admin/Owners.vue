@@ -18,7 +18,7 @@
             Voltar ao Dashboard
           </router-link>
           <button
-            @click="goToCreate"
+            @click="openCreateModal"
             class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg shadow-sm hover:shadow-md"
           >
             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -37,8 +37,8 @@
         :actions="actions"
         :loading="loading"
         create-button-text="Adicionar Proprietário"
-        @create="goToCreate"
-        @edit="editOwner"
+        @create="openCreateModal"
+        @edit="openEditModal"
         @delete="deleteOwner"
       >
         <template #cell-name="{ item }">
@@ -54,18 +54,114 @@
         </template>
       </DataTable>
     </div>
+
+    <transition name="fade">
+      <div
+        v-if="showModal"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 px-4"
+        role="dialog"
+        aria-modal="true"
+      >
+        <div class="bg-white rounded-xl shadow-xl max-w-2xl w-full p-6 space-y-4">
+          <header class="flex items-start justify-between">
+            <div>
+              <p class="text-sm text-gray-500">{{ isEditing ? 'Edite os dados do proprietário' : 'Cadastre um novo proprietário' }}</p>
+              <h2 class="text-xl font-bold text-gray-900">{{ isEditing ? 'Editar Proprietário' : 'Novo Proprietário' }}</h2>
+            </div>
+            <button
+              type="button"
+              class="text-gray-400 hover:text-gray-600"
+              @click="closeModal"
+              aria-label="Fechar"
+            >
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </header>
+
+          <form class="space-y-4" @submit.prevent="submitForm">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Nome</label>
+                <input
+                  v-model="form.name"
+                  type="text"
+                  required
+                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+              <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Telefone</label>
+                <input
+                  v-model="form.phone"
+                  type="tel"
+                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Email</label>
+                <input
+                  v-model="form.email"
+                  type="email"
+                  required
+                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+              <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Senha</label>
+                <input
+                  v-model="form.password"
+                  :required="!isEditing"
+                  type="password"
+                  :placeholder="isEditing ? 'Preencha para alterar' : 'Defina uma senha'"
+                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+                <p class="text-xs text-gray-500 mt-1" v-if="isEditing">Deixe em branco para manter a senha atual.</p>
+              </div>
+            </div>
+
+            <div class="flex items-center justify-end gap-3 pt-2">
+              <button
+                type="button"
+                class="px-4 py-2 rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-50"
+                @click="closeModal"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                :disabled="submitting"
+                class="inline-flex items-center px-6 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg hover:from-blue-600 hover:to-indigo-700 transition disabled:opacity-60"
+              >
+                <svg v-if="submitting" class="animate-spin h-5 w-5 mr-2 text-white" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                </svg>
+                <span>{{ isEditing ? 'Salvar Alterações' : 'Cadastrar' }}</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </transition>
   </div>
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue';
-import { useRouter } from 'vue-router';
+import { computed, onMounted, ref } from 'vue';
 import axios from 'axios';
 import DataTable from '../../components/Admin/DataTable.vue';
 
-const router = useRouter();
 const owners = ref([]);
 const loading = ref(false);
+const showModal = ref(false);
+const submitting = ref(false);
+const editingOwnerId = ref(null);
+const form = ref({ name: '', email: '', phone: '', password: '' });
 
 const columns = [
   { key: 'id', label: 'ID', cellClass: 'font-mono text-gray-500' },
@@ -95,6 +191,12 @@ const actions = [
   }
 ];
 
+const isEditing = computed(() => Boolean(editingOwnerId.value));
+
+const resetForm = () => {
+  form.value = { name: '', email: '', phone: '', password: '' };
+};
+
 const loadOwners = async () => {
   loading.value = true;
   try {
@@ -109,12 +211,56 @@ const loadOwners = async () => {
   }
 };
 
-const goToCreate = () => {
-  router.push({ name: 'AdminOwnerCreate' });
+const openCreateModal = () => {
+  editingOwnerId.value = null;
+  resetForm();
+  showModal.value = true;
 };
 
-const editOwner = (owner) => {
-  router.push({ name: 'AdminOwnerEdit', params: { id: owner.id } });
+const openEditModal = (owner) => {
+  editingOwnerId.value = owner.id;
+  form.value = {
+    name: owner?.name || '',
+    email: owner?.email || '',
+    phone: owner?.phone || '',
+    password: ''
+  };
+  showModal.value = true;
+};
+
+const closeModal = () => {
+  showModal.value = false;
+  resetForm();
+};
+
+const submitForm = async () => {
+  submitting.value = true;
+  try {
+    const payload = {
+      name: form.value.name,
+      email: form.value.email,
+      phone: form.value.phone,
+      role: 'owner'
+    };
+
+    if (form.value.password) {
+      payload.password = form.value.password;
+    }
+
+    if (isEditing.value) {
+      await axios.put(`/api/users/${editingOwnerId.value}`, payload);
+    } else {
+      await axios.post('/api/users', payload);
+    }
+
+    await loadOwners();
+    closeModal();
+  } catch (error) {
+    console.error('Erro ao salvar proprietário:', error);
+    alert('Não foi possível salvar as informações.');
+  } finally {
+    submitting.value = false;
+  }
 };
 
 const deleteOwner = async (owner) => {
