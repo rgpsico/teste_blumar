@@ -15,7 +15,21 @@
 
       <!-- Filters -->
       <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
-        <h2 class="text-lg font-semibold text-gray-900 mb-4">Filtros</h2>
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-lg font-semibold text-gray-900">Filtros</h2>
+          <div class="flex items-center space-x-3">
+            <span class="text-sm text-gray-600">Período rápido:</span>
+            <select
+              v-model="periodFilter"
+              @change="setPeriodRange"
+              class="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="week">Última semana</option>
+              <option value="month">Último mês</option>
+              <option value="year">Último ano</option>
+            </select>
+          </div>
+        </div>
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Data Inicial</label>
@@ -42,7 +56,21 @@
       </div>
 
       <!-- Stats Cards -->
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+      <div class="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
+        <div class="bg-white rounded-xl shadow-sm p-6">
+          <div class="flex items-start justify-between">
+            <div>
+              <p class="text-sm text-gray-600">Visitantes ({{ periodLabel }})</p>
+              <p class="text-3xl font-bold text-indigo-600">{{ filteredVisitors }}</p>
+              <p class="text-xs text-gray-500 mt-1">Baseado no período selecionado</p>
+            </div>
+            <div class="p-3 bg-indigo-100 rounded-full">
+              <svg class="w-8 h-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M12 3C7.031 3 3 7.031 3 12s4.031 9 9 9 9-4.031 9-9-4.031-9-9-9z" />
+              </svg>
+            </div>
+          </div>
+        </div>
         <div class="bg-white rounded-xl shadow-sm p-6">
           <div class="flex items-center justify-between">
             <div>
@@ -173,6 +201,7 @@ const loading = ref(false)
 const stats = ref({})
 const logs = ref([])
 const graphData = ref([])
+const periodFilter = ref('month')
 
 const filters = ref({
   start_date: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
@@ -216,12 +245,40 @@ const chartOptions = {
     }
   }
 }
-
-alert("aa")
 onMounted(() => {
   fetchDashboard()
 })
-alert("aa")
+
+const periodLabel = computed(() => {
+  const labels = {
+    week: 'última semana',
+    month: 'último mês',
+    year: 'último ano'
+  }
+  return labels[periodFilter.value] || 'período selecionado'
+})
+
+const filteredVisitors = computed(() => {
+  return graphData.value.reduce((total, day) => total + (day.count || 0), 0)
+})
+
+const setPeriodRange = () => {
+  const ranges = {
+    week: 7,
+    month: 30,
+    year: 365
+  }
+
+  const days = ranges[periodFilter.value]
+  const end = new Date()
+  const start = new Date()
+  start.setDate(end.getDate() - days)
+
+  filters.value.start_date = start.toISOString().split('T')[0]
+  filters.value.end_date = end.toISOString().split('T')[0]
+  fetchDashboard()
+}
+
 const fetchDashboard = async () => {
   loading.value = true
   try {
