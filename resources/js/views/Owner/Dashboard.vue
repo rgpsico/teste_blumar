@@ -833,6 +833,12 @@ const loadCommunities = async () => {
 };
 
 const openFaqModal = (property) => {
+  // Evita erros quando o imóvel não está carregado corretamente
+  if (!property || !property.id) {
+    alert('Não foi possível carregar os dados do imóvel. Tente atualizar a página.');
+    return;
+  }
+
   selectedPropertyForFaqs.value = property;
   faqForm.value = { question: '', answer: '' };
   showFaqModal.value = true;
@@ -847,6 +853,11 @@ const closeFaqModal = () => {
 };
 
 const loadFaqs = async (propertyId) => {
+  if (!propertyId) {
+    console.warn('Tentativa de carregar FAQs sem um imóvel válido.');
+    return;
+  }
+
   faqsLoading.value = true;
   try {
     const response = await axios.get(`/api/properties/${propertyId}/faqs`);
