@@ -814,10 +814,27 @@ const profileForm = ref({
   password_confirmation: '',
 });
 
+const normalizePropertyResponse = (payload) => {
+  // Garante que sempre teremos um array de imóveis, independentemente do formato da API
+  if (Array.isArray(payload?.data?.data)) {
+    return payload.data.data.filter(Boolean);
+  }
+
+  if (Array.isArray(payload?.data)) {
+    return payload.data.filter(Boolean);
+  }
+
+  if (Array.isArray(payload)) {
+    return payload.filter(Boolean);
+  }
+
+  return [];
+};
+
 const loadProperties = async () => {
   try {
     const response = await axios.get('/api/properties');
-    properties.value = response.data.data || response.data;
+    properties.value = normalizePropertyResponse(response.data);
   } catch (error) {
     console.error('Erro ao carregar imóveis:', error);
   }
@@ -926,6 +943,11 @@ const openAddModal = () => {
 };
 
 const openEditModal = (property) => {
+  if (!property || !property.id) {
+    alert('Não foi possível carregar os dados deste imóvel. Atualize a página e tente novamente.');
+    return;
+  }
+
   isEditing.value = true;
   editingId.value = property.id;
   propertyForm.value = {
