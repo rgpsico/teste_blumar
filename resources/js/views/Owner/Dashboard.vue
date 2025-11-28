@@ -856,7 +856,7 @@ const loadCommunities = async () => {
   try {
     const response = await axios.get('/api/communities');
     // Filtra valores nulos ou inválidos
-    communities.value = Array.isArray(response.data)
+    communities.value = Array.isArray(response.data.data)
       ? response.data.filter(c => c && c.id)
       : [];
   } catch (error) {

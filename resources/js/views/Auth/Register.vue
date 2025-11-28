@@ -128,7 +128,7 @@ const error = ref('');
 const loadCommunities = async () => {
   try {
     const response = await axios.get('/api/communities');
-    communities.value = response.data;
+    communities.value = response.data.data;
   } catch (err) {
     console.error('Erro ao carregar comunidades:', err);
   }

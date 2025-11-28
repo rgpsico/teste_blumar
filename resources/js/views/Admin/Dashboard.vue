@@ -450,6 +450,7 @@ const pageSubtitle = computed(() => {
 });
 
 // Table Columns
+
 const ownersColumns = [
   { key: 'id', label: 'ID', cellClass: 'font-mono text-gray-500' },
   { key: 'name', label: 'Nome' },
@@ -601,7 +602,7 @@ const loadDashboardData = async () => {
 
     const allUsers = Array.isArray(usersRes.data.data) ? usersRes.data.data : (Array.isArray(usersRes.data) ? usersRes.data : []);
     const allProperties = Array.isArray(propertiesRes.data.data) ? propertiesRes.data.data : (Array.isArray(propertiesRes.data) ? propertiesRes.data : []);
-    const allCommunities = Array.isArray(communitiesRes.data) ? communitiesRes.data : [];
+    const allCommunities = Array.isArray(communitiesRes.data.data) ? communitiesRes.data.data : [];
 
     // Estatísticas gerais
     stats.value.users = allUsers.length;
@@ -684,7 +685,7 @@ const loadProperties = async () => {
 
 const loadCommunities = async () => {
   const response = await axios.get('/api/communities');
-  communities.value = Array.isArray(response.data) ? response.data : [];
+  communities.value = Array.isArray(response.data.data) ? response.data.data : [];
 };
 
 const loadLogs = async () => {
@@ -790,6 +791,7 @@ const handleDeleteUser = async (user) => {
 };
 
 const handleEditCommunity = (community) => {
+  console.log(community)
   router.push({ name: 'AdminCommunityEdit', params: { id: community.id } });
 };
 
