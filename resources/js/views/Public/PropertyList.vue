@@ -76,7 +76,7 @@
         </p>
 
         <!-- Search Bar -->
-        <div class="max-w-3xl mx-auto bg-white rounded-full shadow-2xl p-2 flex items-center gap-2">
+        <div class="max-w-3xl mx-auto bg-white rounded-full shadow-2xl p-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
           <input
             v-model="searchQuery"
             type="text"
@@ -85,7 +85,7 @@
           />
           <button
             @click="filterProperties"
-            class="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-3 rounded-full hover:shadow-lg transition font-semibold"
+            class="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-3 rounded-full hover:shadow-lg transition font-semibold w-full sm:w-auto text-center"
           >
             Buscar
           </button>
@@ -110,11 +110,11 @@
         </button>
       </div>
 
-      <div class="flex gap-8">
+      <div class="flex flex-col lg:flex-row gap-8">
         <!-- Painel de Filtros -->
         <aside
           :class="showFilters ? 'block' : 'hidden lg:block'"
-          class="lg:w-80 w-full bg-white rounded-2xl shadow-lg p-6 h-fit sticky top-24"
+          class="lg:w-80 w-full bg-white rounded-2xl shadow-lg p-6 h-fit lg:sticky top-24 mb-6 lg:mb-0"
         >
           <div class="flex items-center justify-between mb-6">
             <h3 class="text-xl font-bold text-gray-800 flex items-center gap-2">
@@ -178,7 +178,7 @@
             <!-- Quartos -->
             <div>
               <label class="block text-sm font-semibold text-gray-700 mb-3">Quartos</label>
-              <div class="grid grid-cols-4 gap-2">
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 <button
                   v-for="num in [1, 2, 3, 4]"
                   :key="num"
@@ -194,7 +194,7 @@
             <!-- Banheiros -->
             <div>
               <label class="block text-sm font-semibold text-gray-700 mb-3">Banheiros</label>
-              <div class="grid grid-cols-4 gap-2">
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 <button
                   v-for="num in [1, 2, 3, 4]"
                   :key="num"
@@ -268,7 +268,7 @@
       </div>
 
       <div v-else>
-        <div class="mb-6 flex justify-between items-center">
+        <div class="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <h2 class="text-2xl font-bold text-gray-800">
             {{ filteredProperties.length }} imóveis disponíveis
           </h2>
@@ -322,20 +322,20 @@
 
               <p class="text-gray-600 mb-4 line-clamp-2 text-sm">{{ property.description_short }}</p>
 
-              <div class="flex items-center justify-between text-sm text-gray-700 mb-4 bg-gray-50 p-3 rounded-lg">
-                <div class="flex items-center gap-1">
+              <div class="flex flex-wrap items-center justify-between text-sm text-gray-700 mb-4 bg-gray-50 p-3 rounded-lg gap-3">
+                <div class="flex items-center gap-1 min-w-[90px]">
                   <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                   </svg>
                   <span class="font-medium">{{ property.bedrooms }}</span>
                 </div>
-                <div class="flex items-center gap-1">
+                <div class="flex items-center gap-1 min-w-[90px]">
                   <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z" />
                   </svg>
                   <span class="font-medium">{{ property.bathrooms }}</span>
                 </div>
-                <div class="flex items-center gap-1">
+                <div class="flex items-center gap-1 min-w-[110px]">
                   <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
                   </svg>

@@ -6,9 +6,10 @@
           <label class="text-sm text-gray-600 mb-1 block">Status</label>
           <select v-model="filters.status" class="w-full border rounded-lg px-3 py-2 text-sm">
             <option value="">Todos</option>
-            <option value="available">Disponível</option>
+            <option value="available">Disponivel</option>
             <option value="rented">Alugado</option>
-            <option value="maintenance">Manutenção</option>
+            <option value="maintenance">Manutencao</option>
+            <option value="inactive">Inativo</option>
           </select>
         </div>
         <div>
@@ -21,7 +22,7 @@
           </select>
         </div>
         <div>
-          <label class="text-sm text-gray-600 mb-1 block">Proprietário</label>
+          <label class="text-sm text-gray-600 mb-1 block">Proprietario</label>
           <select v-model="filters.owner_id" class="w-full border rounded-lg px-3 py-2 text-sm">
             <option value="">Todos</option>
             <option v-for="owner in owners" :key="owner.id" :value="owner.id">
@@ -84,7 +85,8 @@
           :class="{
             'bg-green-100 text-green-800': value === 'available',
             'bg-purple-100 text-purple-800': value === 'rented',
-            'bg-yellow-100 text-yellow-800': value === 'maintenance'
+            'bg-yellow-100 text-yellow-800': value === 'maintenance',
+            'bg-gray-200 text-gray-800': value === 'inactive'
           }"
           class="px-3 py-1 rounded-full text-xs font-semibold"
         >
@@ -144,44 +146,48 @@
               ></textarea>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-1">Endereço *</label>
+                <label class="block text-sm font-semibold text-gray-700 mb-1">CEP</label>
+                <input
+                  v-model="form.zip_code"
+                  inputmode="numeric"
+                  maxlength="8"
+                  class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+                <p v-if="zipLoading" class="text-xs text-blue-600 mt-1">Buscando endereco pelo CEP...</p>
+              </div>
+              <div class="md:col-span-2">
+                <label class="block text-sm font-semibold text-gray-700 mb-1">Endereco *</label>
                 <input
                   v-model="form.address"
                   required
                   class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
-              <div class="grid grid-cols-2 gap-3">
-                <div>
-                  <label class="block text-sm font-semibold text-gray-700 mb-1">Cidade *</label>
-                  <input
-                    v-model="form.city"
-                    required
-                    class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-                <div>
-                  <label class="block text-sm font-semibold text-gray-700 mb-1">Estado *</label>
-                  <input
-                    v-model="form.state"
-                    maxlength="2"
-                    required
-                    class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent uppercase"
-                  />
-                </div>
-              </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-1">CEP</label>
+                <label class="block text-sm font-semibold text-gray-700 mb-1">Cidade *</label>
                 <input
-                  v-model="form.zip_code"
+                  v-model="form.city"
+                  required
                   class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
+              <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-1">Estado *</label>
+                <input
+                  v-model="form.state"
+                  maxlength="2"
+                  required
+                  class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent uppercase"
+                />
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label class="block text-sm font-semibold text-gray-700 mb-1">Quartos</label>
                 <input
@@ -240,10 +246,13 @@
               <div>
                 <label class="block text-sm font-semibold text-gray-700 mb-1">Status</label>
                 <select v-model="form.status" class="w-full border rounded-lg px-3 py-2">
-                  <option value="available">Disponível</option>
+                  <option value="available">Disponivel</option>
                   <option value="rented">Alugado</option>
-                  <option value="maintenance">Manutenção</option>
+                  <option value="maintenance">Manutencao</option>
+                  <option value="inactive">Inativo</option>
                 </select>
+              </div>
+            </div>
               </div>
             </div>
 
@@ -267,7 +276,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
 import DataTable from '../../components/Admin/DataTable.vue';
@@ -340,6 +349,8 @@ const form = ref({
   status: 'available',
   photos: []
 });
+const zipLoading = ref(false);
+const lastZipFetched = ref('');
 
 const clearFilters = () => {
   filters.value = {
@@ -351,11 +362,13 @@ const clearFilters = () => {
 
 const getStatusLabel = (status) => {
   const labels = {
-    available: 'Disponível',
+    available: 'Disponivel',
     rented: 'Alugado',
-    maintenance: 'Manutenção'
+    maintenance: 'Manutencao',
+    inactive: 'Inativo'
   };
   return labels[status] || status;
+};
 };
 
 const loadProperties = async () => {
@@ -398,6 +411,39 @@ const loadTenants = async () => {
   }
 };
 
+const fetchAddressByZip = async (zip) => {
+  const sanitized = (zip || '').replace(/\D/g, '').slice(0, 8);
+  if (sanitized.length !== 8 || sanitized === lastZipFetched.value) return;
+
+  zipLoading.value = true;
+  lastZipFetched.value = sanitized;
+
+  try {
+    const { data } = await axios.get(`https://viacep.com.br/ws/${sanitized}/json/`);
+    if (data && !data.erro) {
+      form.value.address = data.logradouro || form.value.address;
+      form.value.city = data.localidade || form.value.city;
+      form.value.state = data.uf || form.value.state;
+    }
+  } catch (error) {
+    console.error('Erro ao buscar CEP:', error);
+  } finally {
+    zipLoading.value = false;
+  }
+};
+
+watch(
+  () => form.value.zip_code,
+  (zip) => {
+    const digits = (zip || '').replace(/\D/g, '').slice(0, 8);
+    if (digits !== (zip || '')) {
+      form.value.zip_code = digits;
+      return;
+    }
+    fetchAddressByZip(digits);
+  }
+);
+
 const filteredProperties = computed(() => {
   return properties.value.filter((p) => {
     if (filters.value.status && p.status !== filters.value.status) return false;
@@ -424,6 +470,7 @@ const resetForm = () => {
     status: 'available',
     photos: []
   };
+  lastZipFetched.value = '';
 };
 
 const openCreateModal = () => {
@@ -452,6 +499,7 @@ const handleEditProperty = (property) => {
     status: property.status || 'available',
     photos: property.photos || []
   };
+  lastZipFetched.value = (property.zip_code || '').replace(/\D/g, '').slice(0, 8);
   showModal.value = true;
 };
 

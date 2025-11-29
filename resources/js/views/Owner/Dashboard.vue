@@ -566,8 +566,20 @@
                 required
               ></textarea>
             </div>
+            <div>
+              <label class="block text-sm font-bold mb-2">CEP</label>
+              <input
+                v-model="propertyForm.zip_code"
+                type="text"
+                inputmode="numeric"
+                maxlength="8"
+                class="w-full px-3 py-2 border rounded-md"
+                required
+              />
+              <p v-if="zipLoading" class="text-xs text-blue-600 mt-1">Buscando endereco pelo CEP...</p>
+            </div>
             <div class="md:col-span-2">
-              <label class="block text-sm font-bold mb-2">Endereço</label>
+              <label class="block text-sm font-bold mb-2">Endere?o</label>
               <input
                 v-model="propertyForm.address"
                 type="text"
@@ -588,15 +600,6 @@
               <label class="block text-sm font-bold mb-2">Estado</label>
               <input
                 v-model="propertyForm.state"
-                type="text"
-                class="w-full px-3 py-2 border rounded-md"
-                required
-              />
-            </div>
-            <div>
-              <label class="block text-sm font-bold mb-2">CEP</label>
-              <input
-                v-model="propertyForm.zip_code"
                 type="text"
                 class="w-full px-3 py-2 border rounded-md"
                 required
@@ -646,7 +649,7 @@
               />
             </div>
             <div>
-              <label class="block text-sm font-bold mb-2">Área (m²)</label>
+              <label class="block text-sm font-bold mb-2">Area (m2)</label>
               <input
                 v-model="propertyForm.area"
                 type="number"
@@ -654,15 +657,16 @@
                 required
               />
             </div>
-            <div v-if="isEditing">
+            <div>
               <label class="block text-sm font-bold mb-2">Status</label>
               <select
                 v-model="propertyForm.status"
                 class="w-full px-3 py-2 border rounded-md"
               >
-                <option value="available">Disponível</option>
+                <option value="available">Disponivel (ativo)</option>
                 <option value="rented">Alugado</option>
-                <option value="maintenance">Manutenção</option>
+                <option value="maintenance">Manutencao</option>
+                <option value="inactive">Inativo</option>
               </select>
             </div>
           </div>
@@ -776,7 +780,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '../../stores/auth';
 import axios from 'axios';
@@ -799,6 +803,8 @@ const faqsLoading = ref(false);
 const faqForm = ref({ question: '', answer: '' });
 const savingFaq = ref(false);
 const deletingFaqId = ref(null);
+const zipLoading = ref(false);
+const lastZipFetched = ref('');
 
 const propertyForm = ref({
   title: '',
@@ -864,6 +870,40 @@ const loadCommunities = async () => {
     communities.value = [];
   }
 };
+
+
+const fetchAddressByZip = async (zip) => {
+  const sanitized = (zip || '').replace(/\D/g, '').slice(0, 8);
+  if (sanitized.length !== 8 || sanitized === lastZipFetched.value) return;
+
+  zipLoading.value = true;
+  lastZipFetched.value = sanitized;
+
+  try {
+    const { data } = await axios.get(`https://viacep.com.br/ws/${sanitized}/json/`);
+    if (data && !data.erro) {
+      propertyForm.value.address = data.logradouro || propertyForm.value.address;
+      propertyForm.value.city = data.localidade || propertyForm.value.city;
+      propertyForm.value.state = data.uf || propertyForm.value.state;
+    }
+  } catch (error) {
+    console.error('Erro ao buscar CEP:', error);
+  } finally {
+    zipLoading.value = false;
+  }
+};
+
+watch(
+  () => propertyForm.value.zip_code,
+  (zip) => {
+    const digits = (zip || '').replace(/\D/g, '').slice(0, 8);
+    if (digits !== (zip || '')) {
+      propertyForm.value.zip_code = digits;
+      return;
+    }
+    fetchAddressByZip(digits);
+  }
+);
 
 const openFaqModal = (property) => {
   // Evita erros quando o imóvel não está carregado corretamente
@@ -971,6 +1011,7 @@ const openAddModal = () => {
     video_url: '',
     status: 'available',
   };
+  lastZipFetched.value = '';
   showModal.value = true;
 };
 
@@ -998,6 +1039,7 @@ const openEditModal = (property) => {
     video_url: property.video_url || '',
     status: property.status,
   };
+  lastZipFetched.value = (property.zip_code || '').replace(/\D/g, '').slice(0, 8);
   showModal.value = true;
 };
 
@@ -1093,11 +1135,13 @@ const deleteProperty = async (id) => {
 
 const getStatusLabel = (status) => {
   const labels = {
-    available: 'Disponível',
+    available: 'Disponivel',
     rented: 'Alugado',
-    maintenance: 'Manutenção',
+    maintenance: 'Manutencao',
+    inactive: 'Inativo',
   };
   return labels[status] || status;
+};
 };
 
 const formatPrice = (price) => {
