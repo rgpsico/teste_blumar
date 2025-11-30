@@ -42,6 +42,7 @@ class PropertyController extends Controller
             'photos.*' => 'nullable|string',
             'video_url' => 'nullable|string',
             'community_id' => 'nullable|exists:communities,id',
+            'status' => 'sometimes|in:available,rented,maintenance,inactive',
         ]);
 
         // Se não especificado community_id, usar a comunidade do proprietário
@@ -51,6 +52,7 @@ class PropertyController extends Controller
             ...$request->all(),
             'owner_id' => $request->user()->id,
             'community_id' => $communityId,
+            'status' => $request->input('status', 'available'),
         ]);
 
         $property->load(['owner', 'tenant', 'community']);
@@ -87,7 +89,7 @@ class PropertyController extends Controller
             'photos.*' => 'nullable|string',
             'video_url' => 'sometimes|nullable|string',
             'community_id' => 'sometimes|nullable|exists:communities,id',
-            'status' => 'sometimes|in:available,rented,maintenance',
+            'status' => 'sometimes|in:available,rented,maintenance,inactive',
             'active' => 'sometimes|boolean',
         ]);
 

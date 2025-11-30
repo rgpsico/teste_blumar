@@ -1142,7 +1142,6 @@ const getStatusLabel = (status) => {
   };
   return labels[status] || status;
 };
-};
 
 const formatPrice = (price) => {
   return new Intl.NumberFormat('pt-BR', {
