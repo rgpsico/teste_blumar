@@ -246,9 +246,9 @@
               <div>
                 <label class="block text-sm font-semibold text-gray-700 mb-1">Status</label>
                 <select v-model="form.status" class="w-full border rounded-lg px-3 py-2">
-                  <option value="available">Disponivel</option>
+                  <option value="available">Dispon?vel</option>
                   <option value="rented">Alugado</option>
-                  <option value="maintenance">Manutencao</option>
+                  <option value="maintenance">Manuten??o</option>
                   <option value="inactive">Inativo</option>
                 </select>
               </div>
@@ -362,13 +362,13 @@ const clearFilters = () => {
 
 const getStatusLabel = (status) => {
   const labels = {
-    available: 'Disponivel',
+    available: 'Dispon?vel',
     rented: 'Alugado',
-    maintenance: 'Manutencao',
+    maintenance: 'Manuten??o',
     inactive: 'Inativo'
   };
   return labels[status] || status;
-};
+
 };
 
 const loadProperties = async () => {
