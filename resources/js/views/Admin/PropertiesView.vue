@@ -95,7 +95,7 @@
       </template>
     </DataTable>
 
-    <Transition name="modal"></Transition>
+    <Transition name="modal">
       <div
         v-if="showModal"
         class="fixed inset-0 z-50 flex items-center justify-center px-4"
