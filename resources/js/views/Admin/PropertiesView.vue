@@ -95,7 +95,7 @@
       </template>
     </DataTable>
 
-    <Transition name="modal">
+    <Transition name="modal"></Transition>
       <div
         v-if="showModal"
         class="fixed inset-0 z-50 flex items-center justify-center px-4"
@@ -114,7 +114,7 @@
               </svg>
             </button>
           </div>
-
+          
           <form @submit.prevent="saveProperty" class="space-y-4">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -246,13 +246,11 @@
               <div>
                 <label class="block text-sm font-semibold text-gray-700 mb-1">Status</label>
                 <select v-model="form.status" class="w-full border rounded-lg px-3 py-2">
-                  <option value="available">Dispon?vel</option>
+                  <option value="available">Disponivel</option>
                   <option value="rented">Alugado</option>
-                  <option value="maintenance">Manuten??o</option>
+                  <option value="maintenance">Manutencao</option>
                   <option value="inactive">Inativo</option>
                 </select>
-              </div>
-            </div>
               </div>
             </div>
 
