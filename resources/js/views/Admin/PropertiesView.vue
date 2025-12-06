@@ -55,6 +55,7 @@
       :data="filteredProperties"
       :actions="actions"
       :loading="loading"
+      :show-create-button="false"
       @view="viewProperty"
       @edit="handleEditProperty"
       @delete="deleteProperty"
