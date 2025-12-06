@@ -1,17 +1,20 @@
-import crypto from 'node:crypto';
+import * as crypto from 'node:crypto';
 import { defineConfig } from 'vite';
 import laravel from 'laravel-vite-plugin';
 import vue from '@vitejs/plugin-vue';
 import tailwindcss from '@tailwindcss/vite';
 
-// Vite's Vue plugin expects `crypto.hash` to exist. Node's Web Crypto
-// implementation doesn't provide it, so we provide a minimal polyfill using
-// `createHash` to keep builds working in environments without `crypto.hash`.
-if (typeof globalThis.crypto?.hash !== 'function') {
-    const hash = (algorithm, data, encoding) =>
+// Vite's Vue plugin expects `crypto.hash` to exist, but older Node versions
+// only expose `createHash`. We polyfill both the imported module and the global
+// crypto object to keep builds working in those environments.
+if (typeof crypto.hash !== 'function') {
+    crypto.hash = (algorithm, data, encoding) =>
         crypto.createHash(algorithm).update(data).digest(encoding);
+}
 
-    globalThis.crypto = Object.assign({}, crypto, globalThis.crypto, { hash });
+if (typeof globalThis.crypto?.hash !== 'function') {
+    const baseCrypto = typeof globalThis.crypto === 'object' ? globalThis.crypto : {};
+    globalThis.crypto = Object.assign({}, crypto, baseCrypto, { hash: crypto.hash });
 }
 
 export default defineConfig({
