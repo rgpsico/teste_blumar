@@ -7,14 +7,28 @@ import tailwindcss from '@tailwindcss/vite';
 // Vite's Vue plugin expects `crypto.hash` to exist, but older Node versions
 // only expose `createHash`. We polyfill both the imported module and the global
 // crypto object to keep builds working in those environments.
-if (typeof crypto.hash !== 'function') {
-    crypto.hash = (algorithm, data, encoding) =>
+const hash = typeof crypto.hash === 'function'
+    ? crypto.hash.bind(crypto)
+    : (algorithm, data, encoding) =>
         crypto.createHash(algorithm).update(data).digest(encoding);
-}
 
-if (typeof globalThis.crypto?.hash !== 'function') {
-    const baseCrypto = typeof globalThis.crypto === 'object' ? globalThis.crypto : {};
-    globalThis.crypto = Object.assign({}, crypto, baseCrypto, { hash: crypto.hash });
+const cryptoWithHash = Object.assign({}, crypto, { hash });
+
+const cryptoDescriptor = Object.getOwnPropertyDescriptor(globalThis, 'crypto');
+const existingCrypto = globalThis.crypto;
+
+if (typeof existingCrypto === 'object' && existingCrypto !== null) {
+    if (typeof existingCrypto.hash !== 'function') {
+        try {
+            existingCrypto.hash = hash;
+        } catch {
+            Object.defineProperty(existingCrypto, 'hash', { value: hash, configurable: true });
+        }
+    }
+} else if (cryptoDescriptor?.writable || cryptoDescriptor?.set) {
+    globalThis.crypto = Object.assign({}, cryptoWithHash, existingCrypto, { hash });
+} else if (!cryptoDescriptor) {
+    Object.defineProperty(globalThis, 'crypto', { value: cryptoWithHash, configurable: true, writable: true });
 }
 
 export default defineConfig({
