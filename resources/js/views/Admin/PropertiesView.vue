@@ -320,6 +320,8 @@ const actions = [
 const properties = ref([]);
 const communities = ref([]);
 const tenants = ref([]);
+const owners = ref([]);
+const currentUser = ref(null);
 const loading = ref(false);
 const saving = ref(false);
 const showModal = ref(false);
@@ -328,7 +330,8 @@ const editingId = ref(null);
 const filters = ref({
   status: '',
   community_id: '',
-  tenant_id: ''
+  tenant_id: '',
+  owner_id: ''
 });
 
 const form = ref({
@@ -344,6 +347,7 @@ const form = ref({
   area: '',
   community_id: null,
   tenant_id: null,
+  owner_id: null,
   status: 'available',
   photos: []
 });
@@ -354,7 +358,8 @@ const clearFilters = () => {
   filters.value = {
     status: '',
     community_id: '',
-    tenant_id: ''
+    tenant_id: '',
+    owner_id: ''
   };
 };
 
@@ -384,6 +389,40 @@ const loadProperties = async () => {
     properties.value = list.filter(Boolean);
   } finally {
     loading.value = false;
+  }
+};
+
+const loadCurrentUser = async () => {
+  try {
+    const response = await axios.get('/api/user');
+    currentUser.value = response.data || null;
+  } catch (error) {
+    console.error('Erro ao carregar usuário autenticado:', error);
+    currentUser.value = null;
+  }
+};
+
+const ensureDefaultOwner = () => {
+  if (!form.value.owner_id && owners.value[0]) {
+    form.value.owner_id = owners.value[0].id;
+  }
+};
+
+const loadOwners = async () => {
+  try {
+    const response = await axios.get('/api/users');
+    const allUsers = Array.isArray(response.data?.data)
+      ? response.data.data
+      : Array.isArray(response.data)
+        ? response.data
+        : [];
+    const ownerList = allUsers.filter((u) => u && u.role === 'owner');
+    owners.value = ownerList.length ? ownerList : currentUser.value ? [currentUser.value] : [];
+  } catch (error) {
+    console.error('Erro ao carregar proprietários:', error);
+    owners.value = currentUser.value ? [currentUser.value] : [];
+  } finally {
+    ensureDefaultOwner();
   }
 };
 
@@ -447,6 +486,7 @@ const filteredProperties = computed(() => {
     if (filters.value.status && p.status !== filters.value.status) return false;
     if (filters.value.community_id && String(p.community_id) !== String(filters.value.community_id)) return false;
     if (filters.value.tenant_id && String(p.tenant_id) !== String(filters.value.tenant_id)) return false;
+    if (filters.value.owner_id && String(p.owner_id) !== String(filters.value.owner_id)) return false;
     return true;
   });
 });
@@ -465,6 +505,7 @@ const resetForm = () => {
     area: '',
     community_id: null,
     tenant_id: null,
+    owner_id: owners.value[0]?.id || null,
     status: 'available',
     photos: []
   };
@@ -494,6 +535,7 @@ const handleEditProperty = (property) => {
     area: property.area || '',
     community_id: property.community_id || null,
     tenant_id: property.tenant_id || null,
+    owner_id: property.owner_id || null,
     status: property.status || 'available',
     photos: property.photos || []
   };
@@ -521,6 +563,9 @@ const saveProperty = async () => {
   saving.value = true;
   try {
     const payload = { ...form.value, photos: form.value.photos || [] };
+    if (!payload.owner_id) {
+      delete payload.owner_id;
+    }
     if (isEditing.value && editingId.value) {
       await axios.put(`/api/properties/${editingId.value}`, payload);
     } else {
@@ -541,9 +586,9 @@ const closeModal = () => {
 };
 
 onMounted(() => {
-  loadProperties();
-  loadCommunities();
-  loadTenants();
+  loadCurrentUser().finally(async () => {
+    await Promise.all([loadOwners(), loadProperties(), loadCommunities(), loadTenants()]);
+  });
 });
 </script>
 
