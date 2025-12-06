@@ -42,15 +42,23 @@ class PropertyController extends Controller
             'photos.*' => 'nullable|string',
             'video_url' => 'nullable|string',
             'community_id' => 'nullable|exists:communities,id',
+            'owner_id' => 'sometimes|exists:users,id',
             'status' => 'sometimes|in:available,rented,maintenance,inactive',
         ]);
 
         // Se não especificado community_id, usar a comunidade do proprietário
         $communityId = $request->community_id ?? $request->user()->community_id;
 
+        $ownerId = $request->user()->id;
+
+        if ($request->user()->isAdmin()) {
+            // Admin pode cadastrar o próprio imóvel ou escolher qualquer proprietário cadastrado
+            $ownerId = $request->input('owner_id', $request->user()->id);
+        }
+
         $property = Property::create([
             ...$request->all(),
-            'owner_id' => $request->user()->id,
+            'owner_id' => $ownerId,
             'community_id' => $communityId,
             'status' => $request->input('status', 'available'),
         ]);
